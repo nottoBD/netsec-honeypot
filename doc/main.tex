@@ -1,0 +1,28 @@
+\documentclass{cls/ULBreport}
+
+\sceau{img/sceauULB.jpg}
+
+\addbibresource{bib/biblio.bib}
+
+\begin{document}
+
+\titleULB{
+	title={Exemple de Titre},
+	studies={2024-2025},
+	course={ELEC-H504 - Network Security},
+	author={SUNDARESAN Sankara\\ MESSAOUDI Leila\\ CHOUGULE Gaurav\\ BOTTON David},
+	date={June 2025},
+	teacher={Pr. Jean-Michel Dricot\\ Navid Ladner},
+	logo={img/logo_vub_ulb.png},
+	manyAuthor
+}
+
+\chapter{Introduction}
+
+c'est une citation \cite{Exemple}.
+
+%Bibliography
+\nocite{*}
+\printbibliography[type=article,title=Articles]
+
+\end{document}
