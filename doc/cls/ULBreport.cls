@@ -1,9 +1,4 @@
-%%%% Template for ULB report %%%%
-	  % By Boris Coquelet %
-	  
-%Dans le cadre du poste aide à la réussite au Bureau des étudiants de Polytechnique%
-%2019
-% Version 1.0
+%ULBreport.cls
 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{ULBreport}
@@ -35,9 +30,27 @@
 \pgfplotsset{compat=newest}
 
 %%%%Forme%%%%
+% Fix chapter heading spacing
+\RequirePackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}
+  {\chaptertitlename\ \thechapter}
+  {0pt} % Space between chapter number and title
+  {\Huge}
+\titlespacing*{\chapter}{0pt}{-30pt}{30pt} % Reduce space before chapter title
 
-%Chapter form
-% \RequirePackage[Bjornstrup]{fncychap}
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {\arabic{section}} % Remove chapter number
+  {1em}
+  {}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection} % Already includes section number
+  {1em}
+  {}
+
 
 %Picture package
 \RequirePackage{graphicx}
@@ -69,7 +82,7 @@
 %%%%Annexe%%%%
 
 \RequirePackage[toc,page]{appendix}
-\linespread{1.5}
+\linespread{1.0}
 \renewcommand{\appendixtocname}{Annexes}
 \renewcommand{\appendixpagename}{Annexes}
 
@@ -124,10 +137,11 @@
 }
 
 % Title command
-\newcommand*{\titleULB}[1]{\setkeys[PRE]{fam}{#1}
-
-	\begingroup
-	\BgThispage
+\newcommand*{\titleULB}[1]{
+    % \RequirePackage{fourier} % Load fourier ONLY for the title page
+    \setkeys[PRE]{fam}{#1}
+    \begingroup
+    \BgThispage
 	% Replace logo with nothing if not specified
 	\ifthenelse{\equal{\cmdPRE@fam@logo}{7}}{}{\centering\includegraphics[height=2.5cm,width=12cm,keepaspectratio]{img/logo_vub_ulb.png}\\}
 	{\cmdPRE@fam@studies}
@@ -157,34 +171,22 @@
 	{\cmdPRE@fam@date}
 	\end{center}
 	\vspace*{3\baselineskip}
-	\pagenumbering{gobble}
-	\newpage
+        \pagenumbering{gobble}
+	    \clearpage
+    \null
+    \thispagestyle{empty}
+    \newpage
+
+        \newpage
 	\tableofcontents
+        \endgroup
     \newpage
     \pagenumbering{arabic}
 \endgroup}
 
-% Fix on chapter overful hbox
-\renewcommand{\DOCH}{%
-    \settowidth{\py}{\CNoV\thechapter}%
-    \addtolength{\py}{-10pt}%     % Amount of space by which the
-%                                  % number is shifted right
-    \fboxsep=0pt%
-    \colorbox[gray]{.85}{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}%
-\kern-\myhi
-    \kern-\py\raise20pt%
-    \hbox{\color[gray]{.5}\CNoV\thechapter}%
-%\kern-\myhi
-\\%
-  }
+
 
 \makeatother
-
-%Boxed environement
-\newenvironment{frshaded*}{%
-	\def\FrameCommand{\fboxrule=\FrameRule\fboxsep=\FrameSep \fcolorbox{framecolor}{shadecolor}}%
-	\MakeFramed {\advance\hsize-\width \FrameRestore}}%
-{\endMakeFramed}
 
 %Command to put the seal of ULB in Background of the first page
 \newcommand{\sceau}[1]{\backgroundsetup{
@@ -198,8 +200,6 @@ contents={%
   }%
 }}
 
-%Add small heading in the left corner of the page.
-\pagestyle{headings}
 
 %This is used to force the label alphabetic for the citation of biblio
 % begin: excerpt from `alphabetic.bbx'

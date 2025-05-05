@@ -1,28 +1,243 @@
+%main.tex
 \documentclass{cls/ULBreport}
 
+% Fix section numbering (remove chapter prefix)
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
 \sceau{img/sceauULB.jpg}
-
 \addbibresource{bib/biblio.bib}
+
+% Keep fourier fonts for the title
+\usepackage{ragged2e}
+\usepackage{parskip}
+\geometry{a4paper,top=1.5cm,bottom=2cm,left=2cm,right=2cm,headheight=15pt,includehead}
+
+% For \AfterGroup hook
+\usepackage{etoolbox} 
+
+% Configure abstract (compact, italic, bold, centered with "Abstract" title)
+\renewenvironment{abstract}{%
+  \clearpage
+  \thispagestyle{plain}
+  \begin{center}
+    \bfseries\itshape ABSTRACT
+  \end{center}
+  \vspace{0.5cm}
+  \begin{quote}
+    \itshape
+    \justifying
+}{%
+  \end{quote}
+  \clearpage
+}
+
+% Add listings config (unchanged)
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    captionpos=b,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+}
+\hypersetup{
+    hidelinks,
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+% Customize citation commands for footnotes
+\DeclareFieldFormat{footnote:note}{#1}
+\DeclareFieldFormat{footnote:shorttitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{footnote:author}{#1}
+\DeclareFieldFormat{footnote:year}{\mkbibparens{#1}}
+\DeclareFieldFormat{footnote:url}{\url{#1}}
+% Adjust footnote spacing if needed
+\setlength{\footnotesep}{0.5em}
+
+% Customization for the bibliography
+\DeclareFieldFormat{url}{\url{#1}}
+\DeclareFieldFormat{note}{\textit{#1}}
+\addbibresource{refs/references.bib}
+
+% Custom format for code
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    captionpos=b,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+}
+% Define vibrant colors
+\definecolor{background}{rgb}{1.0,1.0,1.0} % White background
+\definecolor{keyword}{rgb}{0.1,0.1,0.8}    % Deep blue for keywords
+\definecolor{comment}{rgb}{0.5,0.5,0.5}    % Gray for comments
+\definecolor{string}{rgb}{0.8,0.1,0.1}     % Strong red for strings
+\definecolor{identifier}{rgb}{0.0,0.0,0.5} % Navy blue for identifiers and functions
+\definecolor{number}{rgb}{0.6,0.2,0.2}     % Reddish-brown for numbers
+
+% Configure listings package
+\lstset{
+    language=C,
+    backgroundcolor=\color{background},
+    basicstyle=\ttfamily\footnotesize,    % Small monospace font
+    keywordstyle=\color{keyword}\bfseries, % Keywords in bold blue
+    commentstyle=\color{comment}\itshape, % Comments in italic gray
+    stringstyle=\color{string},           % Strings in strong red
+    identifierstyle=\color{identifier},   % Identifiers in navy blue
+    numberstyle=\tiny\color{comment},     % Line numbers in gray
+    numbers=left,                         % Line numbers on the left
+    stepnumber=1,                         % Line number increment
+    numbersep=8pt,                        % Line number spacing
+    frame=single,                         % Single-line frame around code
+    rulecolor=\color{black},              % Frame color
+    breaklines=true,                      % Enable line breaking
+    showstringspaces=false,               % Don't show spaces in strings
+    tabsize=4,                            % Set tab size
+    captionpos=b,                         % Caption position at the bottom
+    morekeywords={uint8_t, uint16_t, uint32_t, uint64_t} % Add custom keywords if needed
+}
+
 
 \begin{document}
 
-\titleULB{
-	title={Deception and Honeypot for Attack Profiling},
-	studies={2024-2025},
-	course={ELEC-H504 - Network Security},
-	author={SUNDARESAN Sankara\\ MESSAOUDI Leila\\ CHOUGULE Gaurav\\ BOTTON David},
-	date={June 2025},
-	teacher={Pr. Jean-Michel Dricot\\ Navid Ladner},
-	logo={img/logo_vub_ulb.png},
-	manyAuthor
-}
+    \titleULB{
+    	title={Deception \& Honeypot for Attack Profiling},
+    	studies={2024-2025},
+    	course={ELEC-H504 - Network Security},
+    	author={SUNDARESAN Sankara\\ CHOUGULE Gaurav \\MESSAOUDI Leila\\ BOTTON David},
+    	date={June 2025},
+    	teacher={Pr. Jean-Michel Dricot\\ Navid Ladner},
+    	logo={img/logo_vub_ulb.png},
+    	manyAuthor,
+    }
+    
+    % Switch to Computer Modern AFTER title page
+    \renewcommand{\rmdefault}{cmr} % Computer Modern Roman
+    \renewcommand{\sfdefault}{cmss} % Computer Modern Sans
+    \renewcommand{\ttdefault}{cmtt} % Computer Modern Typewriter
+    
+    % Force font update (required after redefining defaults)
+    \makeatletter
+    \renewcommand{\reset@font}{\normalfont\@setfontsize\f@size{12}{14.4}}
+    \makeatother
+    \normalfont
 
-\chapter{Introduction}
 
-c'est une citation \cite{Exemple}.
+    %
+    % ABSTRACT 
+    \begin{abstract}        
+    This paper shows an operational deployment of the SSH honeypot using Cowrie on an Ubuntu EC2 instance to capture attacker activity under real-world circumstances. By exposing a knowingly open SSH port on the internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (TTPs). Key steps include isolating honeypot space from production access via fail2ban, redirecting malicious traffic to Cowrie via iptables, and customizing fake files to track attacker activity. All settings are covered to enable replication, as this paper remains focused on the hands-on aspect of honeypot-based deception. 
+    \end{abstract}
+    \newpage
+    %
+    % %
 
-%Bibliography
-\nocite{*}
-\printbibliography[type=article,title=Articles]
+
+    %
+    % section INTRODUCTION
+    \section{Introduction}
+    With more advanced automated SSH-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. This report describes the configuration of a Cowrie honeypot in a test AWS environment that was designed to mimic realistic infrastructure but isolate malicious activity from legitimate administrative activity. Through routing port 22 traffic to the honeypot and restricting production access to port 2223 with key-based authentication, the study enables monitoring of attacker activities in fine granularity without compromising the security of systems. The fail2ban method is employed for counteracting brute-force attacks against hardened administrative interfaces, while rules based on iptables are implemented to route opponents into the honeypot infrastructure. 
+
+        %
+        % subsection PROBLEM STATEMENT
+        \subsection{Problem Statement} 
+        Public SSH services are most frequent targets of credential-stuffing attacks and post-compromise persistence methods such as SSH key injection and cronjob exploitation. Existing defensive measures have a tendency to lack the visibility to deeply analyze these malicious processes. This research addresses two significant challenges: (1) safe isolation of production access from honeypot bait to prevent collateral system compromise, and (2) the engineering of logging mechanisms that are able to capture attacker TTPs without affecting environmental integrity.
+        %
+        % %
+
+        %
+        % subsection RESEARCH QUESTIONS
+        \subsection{Research Questions}
+        The study investigates three core questions: First, which credential pairs are most frequently exploited in SSH brute-force campaigns against internet-exposed systems? Second, what persistence mechanisms (e.g., unauthorized key additions, scheduled task manipulation) do attackers prioritize following initial compromise? Third, to what extent can strategically placed decoy files, such as fabricated /etc/shadow entries, extend attacker engagement to improve TTP profiling?
+        %
+        % %
+    %
+    % %
+
+        
+    %
+    % section SSH ISOLATION & FAIL2BAN HARDENING
+    \section{SSH Isolation \& Fail2ban Hardening}
+
+        
+        \subsection{Admin SSH Hardening (Port 2223)}
+        \begin{lstlisting}[language=bash,caption={Securing Legitimate Access}]
+ # /etc/ssh/sshd_config
+ Port 2223
+ PermitRootLogin no
+ PasswordAuthentication no
+ AllowUsers ubuntu
+        \end{lstlisting}
+        
+        \textbf{Security Rationale}: Restricts access to key-based auth for user \texttt{ubuntu}, reducing attack surface. Non-standard port avoids automated scans.
+        
+        \subsection{Fail2ban Configuration for Port 2223}
+        \begin{lstlisting}[language=bash,caption={Custom Jail Rules}]
+ # /etc/fail2ban/jail.d/ssh-admin.conf
+ [ssh-admin]
+ enabled  = true
+ port     = 2223
+ filter   = sshd
+ maxretry = 3  
+ bantime  = 1h
+        \end{lstlisting}
+        
+        \begin{lstlisting}[language=bash,caption={Regex Filter Against Key-Based Attacks}]
+ # /etc/fail2ban/filter.d/sshd.conf
+ failregex = ^%(__prefix_line)s(Received disconnect from <HOST> port \d+: Too many authentication failures)
+        \end{lstlisting}
+        
+        \textbf{Key Design}: Targets repeated public key failures—common in credential stuffing. Ignores password attempts (disabled in SSH).
+        
+        \subsection{IPTables Redirect for Cowrie (Port 22 $\rightarrow$ 2222)}
+        \begin{lstlisting}[language=bash,caption={Traffic Redirection Pre-Cowrie}]
+ sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
+ sudo netfilter-persistent save
+        \end{lstlisting}
+        
+        \textbf{Operational Security}: Redirects all port 22 traffic to Cowrie while preserving admin access via 2223. Rules persist reboot.
+        %
+        % %
+    %
+    % %
+
+
+        \subsection{Validation Metrics}  
+        \label{sec:validation}  
+        
+        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools.  
+            \hyperref[annexa:network]{Annex A} provides exact commands for:  Network isolation (nmap, iptables), Fail2ban regex precision (ssh-key brute-forcing), Cowrie logging integrity (attack replay), Attack surface audits (ss, netstat).
+        
+
+
+
+
+
+
+
+
+
+    %
+    % %
+    % citations go here \cite{Exemple}.
+    
+    %Bibliography
+    % \nocite{*}
+    % \printbibliography[type=article,title=Articles]
+    
+
+
+
+    
+    %
+    % % section ANNEXES
+    \input{annex.tex} % Include external annex file  
+    %
+    % %
+
 
 \end{document}
+

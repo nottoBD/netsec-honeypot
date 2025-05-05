@@ -1,0 +1,42 @@
+\newpage
+
+\section*{Annex A: Validation for SSH Isolation \& Fail2ban Hardening}  
+\label{annexa}  
+
+\begin{lstlisting}[language=bash, label={annexa:network}, caption={Network Isolation Verification}]  
+# Verify port 22 redirects to Cowrie (2222) and admin port (2223) is exclusive  
+sudo nmap -sV -p 22,2222,2223 localhost  
+
+# Check iptables NAT rules for redirect (should show 22 to 2222)  
+sudo iptables -t nat -L PREROUTING -v -n  
+
+# Ensure no SSH service binds to port 22 (only Cowrie on 2222)  
+sudo ss -tulpn | grep -E ':22|:2222|:2223'  
+\end{lstlisting}  
+
+\begin{lstlisting}[language=bash, label={annexa:fail2ban}, caption={Fail2ban Efficacy Testing}]  
+# Simulate key-based brute-forcing to trigger fail2ban  
+for i in {1..5}; do ssh -i /path/fake_key ubuntu@localhost -p 2223; done  
+
+# Verify fail2ban logged the bans (look for 'ssh-admin' jail)  
+sudo grep "ssh-admin" /var/log/fail2ban.log  
+
+# Check active bans (should list test IP)  
+sudo fail2ban-client status ssh-admin  
+\end{lstlisting}  
+
+\begin{lstlisting}[language=bash, label={annexa:cowrie}, caption={Cowrie Logging Validation}]  
+# Replay attacker commands via SSH  
+echo 'echo "malicious payload"' | ssh attacker@localhost -p 22  
+
+# Verify Cowrie logged the activity (JSON format)  
+sudo jq '.eventid, .input' /var/log/cowrie/cowrie.json | tail -n 20  
+
+# Monitor fake file tampering (e.g., /etc/fake_shadow)  
+sudo auditctl -w /etc/fake_shadow -p war -k cowrie_tampering  
+\end{lstlisting}  
+
+
+
+\newpage
+
