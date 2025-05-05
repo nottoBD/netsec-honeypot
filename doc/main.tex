@@ -12,8 +12,13 @@
 \usepackage{parskip}
 \geometry{a4paper,top=1.5cm,bottom=2cm,left=2cm,right=2cm,headheight=15pt,includehead}
 
+\usepackage{listings}
 % For \AfterGroup hook
-\usepackage{etoolbox} 
+\usepackage{etoolbox}
+% For framed boxes  
+\usepackage[most]{tcolorbox}
+% For colors  
+\usepackage{xcolor}
 
 % Configure abstract (compact, italic, bold, centered with "Abstract" title)
 \renewenvironment{abstract}{%
@@ -31,21 +36,7 @@
   \clearpage
 }
 
-% Add listings config (unchanged)
-\lstset{
-    basicstyle=\ttfamily\small,
-    breaklines=true,
-    captionpos=b,
-    frame=single,
-    numbers=left,
-    numberstyle=\tiny\color{gray},
-}
-\hypersetup{
-    hidelinks,
-    colorlinks=true,
-    linkcolor=blue,
-    urlcolor=blue
-}
+
 
 % Customize citation commands for footnotes
 \DeclareFieldFormat{footnote:note}{#1}
@@ -61,45 +52,57 @@
 \DeclareFieldFormat{note}{\textit{#1}}
 \addbibresource{refs/references.bib}
 
-% Custom format for code
-\lstset{
-    basicstyle=\ttfamily\small,
-    breaklines=true,
-    captionpos=b,
-    frame=single,
-    numbers=left,
-    numberstyle=\tiny\color{gray},
-}
-% Define vibrant colors
-\definecolor{background}{rgb}{1.0,1.0,1.0} % White background
-\definecolor{keyword}{rgb}{0.1,0.1,0.8}    % Deep blue for keywords
-\definecolor{comment}{rgb}{0.5,0.5,0.5}    % Gray for comments
-\definecolor{string}{rgb}{0.8,0.1,0.1}     % Strong red for strings
-\definecolor{identifier}{rgb}{0.0,0.0,0.5} % Navy blue for identifiers and functions
-\definecolor{number}{rgb}{0.6,0.2,0.2}     % Reddish-brown for numbers
 
-% Configure listings package
+% ========== Color Definitions ==========
+\definecolor{background}{HTML}{FFFFFF}    % Pure white background
+\definecolor{keyword}{HTML}{0000FF}       % Vivid blue for keywords
+\definecolor{comment}{HTML}{008000}       % Rich green for comments
+\definecolor{string}{HTML}{FF0000}        % Bright red for strings
+\definecolor{identifier}{HTML}{000080}    % Deep navy for identifiers
+\definecolor{number}{HTML}{800000}        % Maroon for numbers
+\definecolor{frame}{HTML}{000000}         % Black frame
+
+% ========== tcolorbox Style ==========
+\newtcolorbox{codebox}{
+    enhanced,
+    arc=3pt,
+    boxrule=1pt,
+    colback=background,
+    colframe=frame,
+    top=4pt,
+    bottom=4pt,
+    left=4pt,
+    right=4pt,
+    overlay unbroken and first={
+        \node[anchor=north east] at (frame.north east) {\lstlistingname};
+    }
+}
+
+% ========== Listings Configuration ==========
 \lstset{
-    language=C,
+    language=bash,
+    basicstyle=\ttfamily\footnotesize,
     backgroundcolor=\color{background},
-    basicstyle=\ttfamily\footnotesize,    % Small monospace font
-    keywordstyle=\color{keyword}\bfseries, % Keywords in bold blue
-    commentstyle=\color{comment}\itshape, % Comments in italic gray
-    stringstyle=\color{string},           % Strings in strong red
-    identifierstyle=\color{identifier},   % Identifiers in navy blue
-    numberstyle=\tiny\color{comment},     % Line numbers in gray
-    numbers=left,                         % Line numbers on the left
-    stepnumber=1,                         % Line number increment
-    numbersep=8pt,                        % Line number spacing
-    frame=single,                         % Single-line frame around code
-    rulecolor=\color{black},              % Frame color
-    breaklines=true,                      % Enable line breaking
-    showstringspaces=false,               % Don't show spaces in strings
-    tabsize=4,                            % Set tab size
-    captionpos=b,                         % Caption position at the bottom
-    morekeywords={uint8_t, uint16_t, uint32_t, uint64_t} % Add custom keywords if needed
+    keywordstyle=\color{keyword}\bfseries,
+    commentstyle=\color{comment}\itshape,
+    stringstyle=\color{string},
+    identifierstyle=\color{identifier},
+    numberstyle=\tiny\color{gray},
+    numbers=none,
+    frame=single,
+    framerule=1pt,
+    rulecolor=\color{frame},
+    breaklines=true,
+    breakatwhitespace=true, % Prevent breaks in middle of words
+    postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+    showstringspaces=false,
+    tabsize=4,
+    columns=fullflexible, % Better spacing for copy-paste
+    keepspaces=true, % Preserve whitespace
+    upquote=true, % Ensure proper quote rendering
+    captionpos=b,
+    belowcaptionskip=1em,
 }
-
 
 \begin{document}
 
@@ -129,7 +132,7 @@
     %
     % ABSTRACT 
     \begin{abstract}        
-    This paper shows an operational deployment of the SSH honeypot using Cowrie on an Ubuntu EC2 instance to capture attacker activity under real-world circumstances. By exposing a knowingly open SSH port on the internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (TTPs). Key steps include isolating honeypot space from production access via fail2ban, redirecting malicious traffic to Cowrie via iptables, and customizing fake files to track attacker activity. All settings are covered to enable replication, as this paper remains focused on the hands-on aspect of honeypot-based deception. 
+    This paper shows an operational deployment of the SSH honeypot using \texttt{cowrie} on an Ubuntu EC2 instance to capture attacker activity under real-world circumstances. By exposing a knowingly open SSH port on the internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (TTPs). Key steps include isolating honeypot space from production access via fail2ban, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and customizing fake files to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. 
     \end{abstract}
     \newpage
     %
@@ -139,7 +142,7 @@
     %
     % section INTRODUCTION
     \section{Introduction}
-    With more advanced automated SSH-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. This report describes the configuration of a Cowrie honeypot in a test AWS environment that was designed to mimic realistic infrastructure but isolate malicious activity from legitimate administrative activity. Through routing port 22 traffic to the honeypot and restricting production access to port 2223 with key-based authentication, the study enables monitoring of attacker activities in fine granularity without compromising the security of systems. The fail2ban method is employed for counteracting brute-force attacks against hardened administrative interfaces, while rules based on iptables are implemented to route opponents into the honeypot infrastructure. 
+    With more advanced automated SSH-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. This report describes the configuration of a \texttt{cowrie} honeypot in a test AWS environment that was designed to mimic realistic infrastructure but isolate malicious activity from legitimate administrative activity. Through routing \textit{port 22} traffic to the honeypot and restricting production access to \textit{port 2223} with key-based authentication, the study enables monitoring of attacker activities in fine granularity without compromising the security of systems. The \texttt{fail2ban} program is employed for counteracting brute-force attacks against hardened administrative interfaces, while rules based on \texttt{iptables} are implemented to route opponents into the honeypot infrastructure. 
 
         %
         % subsection PROBLEM STATEMENT
@@ -154,6 +157,18 @@
         The study investigates three core questions: First, which credential pairs are most frequently exploited in SSH brute-force campaigns against internet-exposed systems? Second, what persistence mechanisms (e.g., unauthorized key additions, scheduled task manipulation) do attackers prioritize following initial compromise? Third, to what extent can strategically placed decoy files, such as fabricated /etc/shadow entries, extend attacker engagement to improve TTP profiling?
         %
         % %
+
+    %
+    % % DISCLAIMER
+    \begin{tcolorbox}[  
+        colback=red!5!white,  
+        colframe=red!75!black,  
+        title={\textbf{\textcolor{black}{Security Disclaimer}}},
+        fontupper=\small,  
+        sharp corners  
+    ]  
+    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken in return. Additionally, cloud provider configurations (e.g., IAM, networking) are not included as implementation-specific and beyond the scope of this short paper.  
+    \end{tcolorbox}  
     %
     % %
 
@@ -163,8 +178,8 @@
     \section{SSH Isolation \& Fail2ban Hardening}
 
         
-        \subsection{Admin SSH Hardening (Port 2223)}
-        Restricts access to key-based auth for user \texttt{ubuntu}, reducing attack surface. Non-standard port avoids automated scans.
+        \subsection{Admin SSH Hardening}
+        Restricts access to key-based auth on non-standard \textit{port 2223} for legitimate contributors to the project, thus reducing attack surface.
         
         \begin{lstlisting}[language=bash,caption={Securing Legitimate Access}]
  # /etc/ssh/sshd_config
@@ -184,7 +199,7 @@
         \end{lstlisting}
         
         
-        \subsection{Fail2ban Configuration for Port 2223}
+        \subsection{Fail2ban Configuration}
         Targets repeated public key failures, common in credential stuffing. Ignores password attempts (disabled in SSH).
         
         \begin{lstlisting}[language=bash,caption={Custom Jail Rules}]
@@ -207,11 +222,12 @@ failregex = %(cmnfailre)s
         \end{lstlisting}
         
         
-        \subsection{IPTables Redirect for Cowrie (Port 22 $\rightarrow$ 2222)}
-        Redirects all port 22 traffic to Cowrie while preserving admin access via 2223. Rules persist reboot. We do not whitelist admin IPs for ease of development.
-        \begin{lstlisting}[language=bash,caption={Traffic Redirection Pre-Cowrie}]
- sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
+        \subsection{IPtables Redirection}
+        Redirects all \textit{port 22}'s traffic to \texttt{cowrie}, with rules persisting after reboot. Legitimate key-based accesses on \textit{port 2223} are separated and preserved, we could additionally whitelist our group collaborators' IP addresses for a much tighter defense but will not do it here for ease of development. The \texttt{sshd} to \texttt{cowrie} {ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: we avoid both processes to conflict with each other, we can restart them separately, binding to high ports does not require root privileges, also, Fail2ban needs an explicit target to be effective. Containerization and separation of concern are key principles for permitting a comprehensive post-attack analysis.
+        \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
+ sudo \texttt{iptables} -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo ip6tables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
+ sudo apt install \texttt{iptables}-persistent netfilter-persistent
  sudo netfilter-persistent save
         \end{lstlisting}
         
@@ -224,8 +240,7 @@ failregex = %(cmnfailre)s
         \subsection{Validation Metrics}  
         \label{sec:validation}  
         
-        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools.  
-            \hyperref[annexa:network]{Annex A} provides exact commands for:  Network isolation (nmap, iptables), Fail2ban regex precision (ssh-key brute-forcing), Cowrie logging integrity (attack replay), Attack surface audits (ss, netstat).
+        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. The following \hyperref[annexes:network]{Annex} provides exact commands for:  Network isolation (nmap, \texttt{iptables}), Fail2ban regex precision (ssh-key brute-forcing), SSH configuration enforcement and resilience regarding downgrade attacks, protocol validation and cryptographic compliance.
         
 
 
@@ -243,14 +258,25 @@ failregex = %(cmnfailre)s
     %Bibliography
     % \nocite{*}
     % \printbibliography[type=article,title=Articles]
-    
 
 
 
     
     %
-    % % section ANNEXES
-    \input{annex.tex} % Include external annex file  
+    % %  section ANNEXES
+    
+    % \section*{Annexes}
+    % Add a horizontal line
+    \addtocontents{toc}{%
+      \protect\vspace{\baselineskip}%
+      \protect\noindent\rule{\linewidth}{0.1pt}%
+      \protect\par
+    }
+    % Change numbering to alphabetic
+    \renewcommand{\thesection}{\Alph{section}}
+    \setcounter{section}{0} 
+
+    \input{annex.tex}
     %
     % %
 

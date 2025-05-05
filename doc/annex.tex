@@ -1,11 +1,11 @@
 \newpage
 
-\section*{Annex A: Validation for SSH Isolation \& Fail2ban Hardening}  
-\label{annexa}  
+\section{Annex: Validation for SSH Isolation \& Fail2ban Hardening}  
+\label{annexes}  
 
-\begin{lstlisting}[language=bash, label={annexa:network}, caption={Network Isolation Verification}]  
+\begin{lstlisting}[language=bash, label={annexes:network}, caption={Network Isolation Verification}]  
 # Verify port 22 redirects to Cowrie (2222) and admin port (2223) is exclusive  
-sudo nmap -sV -p 22,2222,2223 $EC2_PUBLIC_IP  
+sudo nmap -sV -Pn -p 22,2222,2223 $EC2_PUBLIC_IP  
 
 # Check iptables NAT rules for redirect (should show 22 to 2222)  
 sudo iptables -t nat -L PREROUTING -v -n  
@@ -14,7 +14,11 @@ sudo iptables -t nat -L PREROUTING -v -n
 sudo ss -tulpn | grep -E ':22|:2222|:2223'  
 \end{lstlisting}  
 
-\begin{lstlisting}[language=bash, label={annexa:fail2ban}, caption={Fail2ban Efficacy Testing}]  
+
+% TODO: screenshot here
+
+
+\begin{lstlisting}[language=bash, label={annexes:fail2ban}, caption={Fail2ban Efficacy Testing}]  
 # Simulate key-based brute-forcing to trigger fail2ban  
 for i in {1..5}; do ssh -i /path/fake_key ubuntu@localhost -p 2223; done  
 
@@ -25,18 +29,43 @@ sudo grep "ssh-admin" /var/log/fail2ban.log
 sudo fail2ban-client status ssh-admin  
 \end{lstlisting}  
 
-\begin{lstlisting}[language=bash, label={annexa:cowrie}, caption={Cowrie Logging Validation}]  
-# Replay attacker commands via SSH  
-echo 'echo "malicious payload"' | ssh attacker@localhost -p 22  
 
-# Verify Cowrie logged the activity (JSON format)  
-sudo jq '.eventid, .input' /var/log/cowrie/cowrie.json | tail -n 20  
 
-# Monitor fake file tampering (e.g., /etc/fake_shadow)  
-sudo auditctl -w /etc/fake_shadow -p war -k cowrie_tampering  
+% TODO: screenshot here
+
+
+
+\begin{lstlisting}[language=bash, label={annexes:ssh-hardening}, caption={SSH Service Hardening Validation}]  
+# 1. Verify active SSH configuration matches hardening intent (no fallback to weak protocols)  
+sudo sshd -T | grep -E '^ciphers|^kexalgorithms|^macs|^hostkeyalgorithms'  
+
+# 2. Test SSH service for protocol/cipher negotiation weaknesses  
+nmap -Pn -p 2223 --script ssh2-enum-algos $EC2_PUBLIC_IP | grep -A 10 "algorithm negotiation"  
+
+# 3. Confirm password authentication is globally disabled (even if bypass attempted)  
+ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@$EC2_PUBLIC_IP -p 2223  
 \end{lstlisting}  
+
+% TODO: screenshot here
+
+
 
 
 
 \newpage
 
+% NEW ANNEX HERE
+
+
+
+
+
+\newpage
+
+% NEW ANNEX HERE
+
+\newpage 
+
+\section{Annex: LLM Usage in this Project}  
+\label{annexa}
+% END
