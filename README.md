@@ -1,8 +1,8 @@
 ## Connect to EC2 VM:
 ```
-ssh -A -i "honeypot-instance.pem" ubuntu@ec2-51-20-67-184.eu-north-1.compute.amazonaws.com
+ssh -A -i "honeypot-instance.pem" ubuntu@ec2-16-170-217-174.eu-north-1.compute.amazonaws.com -p 2223
 ```
-! The SSH command rotates as EC2 boots up, check instance management
+! The hostname part might rotate as EC2 starts up, check instance management
 
 
 ## Visit AWS instance management:

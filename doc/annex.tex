@@ -5,7 +5,7 @@
 
 \begin{lstlisting}[language=bash, label={annexa:network}, caption={Network Isolation Verification}]  
 # Verify port 22 redirects to Cowrie (2222) and admin port (2223) is exclusive  
-sudo nmap -sV -p 22,2222,2223 localhost  
+sudo nmap -sV -p 22,2222,2223 $EC2_PUBLIC_IP  
 
 # Check iptables NAT rules for redirect (should show 22 to 2222)  
 sudo iptables -t nat -L PREROUTING -v -n  
