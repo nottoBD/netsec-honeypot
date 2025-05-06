@@ -1,8 +1,8 @@
 \newpage
+% \section*{Annexes}
 
 \section{Annex: Validation for SSH Isolation \& Fail2ban Hardening}  
-\label{annexes}  
-
+\label{annex:network}
 \begin{lstlisting}[language=bash, label={annexes:network}, caption={Network Isolation Verification}]  
 # Verify port 22 redirects to Cowrie (2222) and admin port (2223) is exclusive  
 sudo nmap -sV -Pn -p 22,2222,2223 $EC2_PUBLIC_IP  
@@ -15,7 +15,7 @@ sudo ss -tulpn | grep -E ':22|:2222|:2223'
 \end{lstlisting}  
 
 
-% TODO: screenshot here
+\todo{screenshot here}
 
 
 \begin{lstlisting}[language=bash, label={annexes:fail2ban}, caption={Fail2ban Efficacy Testing}]  
@@ -31,7 +31,7 @@ sudo fail2ban-client status ssh-admin
 
 
 
-% TODO: screenshot here
+\todo{screenshot here}
 
 
 
@@ -46,7 +46,7 @@ nmap -Pn -p 2223 --script ssh2-enum-algos $EC2_PUBLIC_IP | grep -A 10 "algorithm
 ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@$EC2_PUBLIC_IP -p 2223  
 \end{lstlisting}  
 
-% TODO: screenshot here
+\todo{screenshot here}
 
 
 
@@ -66,6 +66,8 @@ ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@$EC2_
 
 \newpage 
 
+
 \section{Annex: LLM Usage in this Project}  
-\label{annexa}
+\label{annex:llm}
+\todo{that annex}
 % END

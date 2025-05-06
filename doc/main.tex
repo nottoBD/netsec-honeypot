@@ -19,8 +19,9 @@
 \usepackage[most]{tcolorbox}
 % For colors  
 \usepackage{xcolor}
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{TODO:} #1}}
 
-% Configure abstract (compact, italic, bold, centered with "Abstract" title)
+% Configure abstract
 \renewenvironment{abstract}{%
   \clearpage
   \thispagestyle{plain}
@@ -36,18 +37,16 @@
   \clearpage
 }
 
-
-
 % Customize citation commands for footnotes
 \DeclareFieldFormat{footnote:note}{#1}
 \DeclareFieldFormat{footnote:shorttitle}{\mkbibemph{#1}}
 \DeclareFieldFormat{footnote:author}{#1}
 \DeclareFieldFormat{footnote:year}{\mkbibparens{#1}}
 \DeclareFieldFormat{footnote:url}{\url{#1}}
-% Adjust footnote spacing if needed
+% footnote spacing
 \setlength{\footnotesep}{0.5em}
 
-% Customization for the bibliography
+% Customization  bibliography
 \DeclareFieldFormat{url}{\url{#1}}
 \DeclareFieldFormat{note}{\textit{#1}}
 \addbibresource{refs/references.bib}
@@ -142,7 +141,7 @@
     %
     % section INTRODUCTION
     \section{Introduction}
-    With more advanced automated SSH-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. This report describes the configuration of a \texttt{cowrie} honeypot in a test AWS environment that was designed to mimic realistic infrastructure but isolate malicious activity from legitimate administrative activity. Through routing \textit{port 22} traffic to the honeypot and restricting production access to \textit{port 2223} with key-based authentication, the study enables monitoring of attacker activities in fine granularity without compromising the security of systems. The \texttt{fail2ban} program is employed for counteracting brute-force attacks against hardened administrative interfaces, while rules based on \texttt{iptables} are implemented to route opponents into the honeypot infrastructure. 
+    With more advanced automated SSH-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. This report describes the configuration of a \texttt{cowrie} honeypot in a production AWS environment that was designed to mimic realistic infrastructure but isolate malicious activity from legitimate administrative activity. Through routing \textit{port 22} traffic to the honeypot and restricting production access to \textit{port 2223} with key-based authentication, the study enables monitoring of attacker activities in fine granularity without compromising the security of systems. The \texttt{fail2ban} program is employed for counteracting brute-force attacks against hardened administrative interfaces, while rules based on \texttt{iptables} are implemented to route opponents into the honeypot infrastructure. 
 
         %
         % subsection PROBLEM STATEMENT
@@ -167,7 +166,7 @@
         fontupper=\small,  
         sharp corners  
     ]  
-    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken in return. Additionally, cloud provider configurations (e.g., IAM, networking) are not included as implementation-specific and beyond the scope of this short paper.  
+    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken in return. Additionally, cloud provider configurations (e.g., IAM, networking) are not included as implementation-specific and beyond the scope of this paper.  
     \end{tcolorbox}  
     %
     % %
@@ -223,9 +222,9 @@ failregex = %(cmnfailre)s
         
         
         \subsection{IPtables Redirection}
-        Redirects all \textit{port 22}'s traffic to \texttt{cowrie}, with rules persisting after reboot. Legitimate key-based accesses on \textit{port 2223} are separated and preserved, we could additionally whitelist our group collaborators' IP addresses for a much tighter defense but will not do it here for ease of development. The \texttt{sshd} to \texttt{cowrie} {ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: we avoid both processes to conflict with each other, we can restart them separately, binding to high ports does not require root privileges, also, Fail2ban needs an explicit target to be effective. Containerization and separation of concern are key principles for permitting a comprehensive post-attack analysis.
+        Redirects all \textit{port 22}'s traffic to \texttt{cowrie}, with rules persisting after reboot. Legitimate key-based accesses on \textit{port 2223} are separated and preserved, we could additionally whitelist our group collaborators' IP addresses for a much tighter defense but will not do it here for ease of development. The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: we avoid both processes to conflict with each other, we can restart them separately, binding to high ports does not require root privileges, also, Fail2ban needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
- sudo \texttt{iptables} -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
+ sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo ip6tables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo apt install \texttt{iptables}-persistent netfilter-persistent
  sudo netfilter-persistent save
@@ -242,9 +241,7 @@ failregex = %(cmnfailre)s
         
         To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. The following \hyperref[annexes:network]{Annex} provides exact commands for:  Network isolation (nmap, \texttt{iptables}), Fail2ban regex precision (ssh-key brute-forcing), SSH configuration enforcement and resilience regarding downgrade attacks, protocol validation and cryptographic compliance.
         
-
-
-
+    \todo{Validate that these commands work once Cowrie is running on 2222}
 
 
 
@@ -261,11 +258,15 @@ failregex = %(cmnfailre)s
 
 
 
+
+
+
+
+
     
     %
     % %  section ANNEXES
     
-    % \section*{Annexes}
     % Add a horizontal line
     \addtocontents{toc}{%
       \protect\vspace{\baselineskip}%
@@ -273,12 +274,14 @@ failregex = %(cmnfailre)s
       \protect\par
     }
     % Change numbering to alphabetic
+    \appendix
     \renewcommand{\thesection}{\Alph{section}}
-    \setcounter{section}{0} 
 
     \input{annex.tex}
     %
     % %
+
+
 
 
 \end{document}
