@@ -131,7 +131,7 @@
     %
     % ABSTRACT 
     \begin{abstract}        
-    This paper shows an operational deployment of the SSH honeypot using \texttt{cowrie} on an Ubuntu EC2 instance to capture attacker activity under real-world circumstances. By exposing a knowingly open SSH port on the internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (TTPs). Key steps include isolating honeypot space from production access via fail2ban, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and customizing fake files to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. 
+    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} \texttt{EC2} instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using \texttt{fail2ban}, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and customizing fake files to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. 
     \end{abstract}
     \newpage
     %
@@ -141,12 +141,12 @@
     %
     % section INTRODUCTION
     \section{Introduction}
-    With more advanced automated SSH-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. This report describes the configuration of a \texttt{cowrie} honeypot in a production AWS environment that was designed to mimic realistic infrastructure but isolate malicious activity from legitimate administrative activity. Through routing \textit{port 22} traffic to the honeypot and restricting production access to \textit{port 2223} with key-based authentication, the study enables monitoring of attacker activities in fine granularity without compromising the security of systems. The \texttt{fail2ban} program is employed for counteracting brute-force attacks against hardened administrative interfaces, while rules based on \texttt{iptables} are implemented to route opponents into the honeypot infrastructure. 
+    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. This report describes the configuration of a \texttt{cowrie} honeypot in a production AWS environment that was designed to mimic realistic infrastructure but isolate malicious activity from legitimate administrative activity. Through routing \textit{port 22} traffic to the honeypot and restricting production access to \textit{port 2223} with key-based authentication, the study enables monitoring of attacker activities in fine granularity without compromising the security of systems. The \texttt{fail2ban} program is employed for counteracting brute-force attacks against hardened administrative interfaces, while rules based on \texttt{iptables} are implemented to route opponents into the honeypot infrastructure. This project's public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
 
         %
         % subsection PROBLEM STATEMENT
         \subsection{Problem Statement} 
-        Public SSH services are most frequent targets of credential-stuffing attacks and post-compromise persistence methods such as SSH key injection and cronjob exploitation. Existing defensive measures have a tendency to lack the visibility to deeply analyze these malicious processes. This research addresses two significant challenges: (1) safe isolation of production access from honeypot bait to prevent collateral system compromise, and (2) the engineering of logging mechanisms that are able to capture attacker TTPs without affecting environmental integrity.
+        Public \texttt{SSH} services are most frequent targets of credential-stuffing attacks and post-compromise persistence methods such as \texttt{SSH} key injection and cronjob exploitation. Existing defensive measures have a tendency to lack the visibility to deeply analyze these malicious processes. This research addresses two significant challenges: (1) safe isolation of production access from honeypot bait to prevent collateral system compromise, and (2) the engineering of logging mechanisms that are able to capture attacker TTPs without affecting environmental integrity.
         %
         % %
 
@@ -222,7 +222,7 @@ failregex = %(cmnfailre)s
         
         
         \subsection{IPtables Redirection}
-        Redirects all \textit{port 22}'s traffic to \texttt{cowrie}, with rules persisting after reboot. Legitimate key-based accesses on \textit{port 2223} are separated and preserved, we could additionally whitelist our group collaborators' IP addresses for a much tighter defense but will not do it here for ease of development. The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: we avoid both processes to conflict with each other, we can restart them separately, binding to high ports does not require root privileges, also, Fail2ban needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
+        Redirects all \textit{port 22}'s traffic to \texttt{cowrie}, with rules persisting after reboot. Legitimate key-based accesses on \textit{port 2223} are separated and preserved, we could additionally whitelist our group collaborators' IP addresses for a much tighter defense but will not do it here for ease of development. The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: we avoid both processes to conflict with each other, we can restart them separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
  sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo ip6tables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
@@ -239,9 +239,9 @@ failregex = %(cmnfailre)s
         \subsection{Validation Metrics}  
         \label{sec:validation}  
         
-        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. The following \hyperref[annexes:network]{Annex} provides exact commands for:  Network isolation (nmap, \texttt{iptables}), Fail2ban regex precision (ssh-key brute-forcing), SSH configuration enforcement and resilience regarding downgrade attacks, protocol validation and cryptographic compliance.
+        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. The following \hyperref[annexes:network]{Annex} provides exact commands for:  Network isolation (nmap, \texttt{iptables}), \texttt{fail2ban} regex precision (ssh-key brute-forcing), \texttt{SSH} configuration enforcement and resilience regarding downgrade attacks, protocol validation and cryptographic compliance.
         
-    \todo{Validate that these commands work once Cowrie is running on 2222}
+    \todo{Validate that these commands work once cowrie is running on 2222}
 
 
 
@@ -266,8 +266,7 @@ failregex = %(cmnfailre)s
     
     %
     % %  section ANNEXES
-    
-    % Add a horizontal line
+    % horizontal line
     \addtocontents{toc}{%
       \protect\vspace{\baselineskip}%
       \protect\noindent\rule{\linewidth}{0.1pt}%
@@ -276,7 +275,12 @@ failregex = %(cmnfailre)s
     % Change numbering to alphabetic
     \appendix
     \renewcommand{\thesection}{\Alph{section}}
-
+    \setcounter{section}{0} % start at A
+    \titleformat{\section}
+      {\normalfont\Large\bfseries}
+      {\Alph{section}}
+      {1em}
+      {}
     \input{annex.tex}
     %
     % %
