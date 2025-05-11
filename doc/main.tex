@@ -153,7 +153,7 @@
         %
         % subsection RESEARCH QUESTIONS
         \subsection{Research Questions}
-        The study investigates three core questions: First, which credential pairs are most frequently exploited in SSH brute-force campaigns against internet-exposed systems? Second, what persistence mechanisms (e.g., unauthorized key additions, scheduled task manipulation) do attackers prioritize following initial compromise? Third, to what extent can strategically placed decoy files, such as fabricated /etc/shadow entries, extend attacker engagement to improve TTP profiling?
+        The report investigates three core questions: First, which credential pairs are most frequently exploited in SSH brute-force campaigns against internet-exposed systems? Second, what persistence mechanisms (e.g., unauthorized key additions, scheduled task manipulation) do attackers prioritize following initial compromise? Third, to what extent can strategically placed decoy files, such as fabricated /etc/shadow entries, extend attacker engagement to improve TTP profiling?
         %
         % %
 
@@ -222,11 +222,11 @@ failregex = %(cmnfailre)s
         
         
         \subsection{IPtables Redirection}
-        Redirects all \textit{port 22}'s traffic to \texttt{cowrie}, with rules persisting after reboot. Legitimate key-based accesses on \textit{port 2223} are separated and preserved, we could additionally whitelist our group collaborators' IP addresses for a much tighter defense but will not do it here for ease of development. The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: we avoid both processes to conflict with each other, we can restart them separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
+        Redirects all \textit{port 22}'s traffic to \texttt{cowrie}, with rules persisting after reboot. Legitimate key-based accesses on \textit{port 2223} are separated and preserved, we could additionally whitelist our group collaborators' IP addresses for a much tighter defense but will not do it here for ease of development. The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: we avoid both processes to conflict with each other, we can restart them separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis. Find IPtables' official documentation \href{https://linux.die.net/man/8/iptables}{here}. 
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
  sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo ip6tables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
- sudo apt install \texttt{iptables}-persistent netfilter-persistent
+ sudo apt install iptables-persistent netfilter-persistent
  sudo netfilter-persistent save
         \end{lstlisting}
         
@@ -244,9 +244,35 @@ failregex = %(cmnfailre)s
     \todo{Validate that these commands work once cowrie is running on 2222}
 
 
+    \section{Cowrie Honeypot Deployment}
+\label{sec:cowrie}
+    \subsection{System Preparation}
+    A specific non-root user and a Python virtual environment isolate Cowrie's operations and therefore ensure that a least-privilege account reduces lateral movement threats in case of compromise. Find the latest official documentation at \href{https://docs.cowrie.org/en/latest/INSTALL.html}{Cowrie Documentation}
+    \begin{lstlisting}[language=bash,caption={Cowrie User Creation}]
+sudo apt-get install -y git python3-venv python3-pip libssl-dev libffi-dev build-essential libpython3-dev authbind # to bind privileged ports without root priv
+sudo adduser --disabled-password --gecos "" cowrie   # prevents password-based connections 
+    \end{lstlisting}
+
+    \subsection{Honeypot Configuration}
+    Compartmentalize Cowrie within a virtual environment and enforce port isolation
+    \begin{lstlisting}[language=bash,caption={Cowrie Honeypot Setup}]
+# Operate as cowrie user
+sudo su - cowrie  
+git clone https://github.com/cowrie/cowrie  
+cd cowrie  
+
+# Isolate dependencies using Python venv
+python3 -m venv cowrie-env  
+source cowrie-env/bin/activate  
+pip install --upgrade -r requirements.txt  
+
+# Configure listener port (2222) to align with iptables redirection (section 2.3)
+sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.cfg  
+    \end{lstlisting}
 
 
-
+\subsection{Security Considerations}  
+The rollout enforcing multiple layers of protection: Cowrie executes under a non-root privileged account with timed-out sudo privileges, implementing the least privilege principle. Attack surface minimization is offered by authbind on port binding, eliminating traditional root escalation threats by virtue of privileged port allocation. Compartmentalization is used for dependency isolation through Python virtual environments, preventing library conflicts and encapsulating potential exploits. Finally, fail2ban integration (Section~\ref{sec:fail2ban}) protects administratively selectively protects port 2223 with ongoing uncontrolled attacker interaction with the honeypot at port 2222. 
 
     %
     % %
