@@ -131,7 +131,7 @@
     %
     % ABSTRACT 
     \begin{abstract}        
-    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} \texttt{EC2} instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using \texttt{fail2ban}, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and forging artifacts to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. This project's public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
+    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} \texttt{EC2} instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using \texttt{fail2ban}, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and forging artifacts to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. Additionally, cloud provider configurations (e.g., IAM, networking) are not included as implementation-specific and beyond the scope of this paper. This project's public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
     \end{abstract}
     \newpage
     %
@@ -143,7 +143,7 @@
     \section{Introduction}
 
     Lance Spitzner, a seminal researcher and Senior Instructor for SANS Cybersecurity Leadership, established foundational principles in his 2002 book \textit{Honeypots: Tracking Hackers}. 
-    Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on AWS positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, mainly signature-based detection tools that inform attackers about the underlying nature of the operation; \enquote{a system designed to be attacked} (p. 298). 
+    Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on AWS positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, mainly signature-based detection tools that inform attackers about the underlying nature of our operation; \enquote{a system designed to be attacked} (p. 298). 
     
     
     With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access, this proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-the-public SSH traffic to the honeypot and restriction of legitimate access with key-based authentication, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots provide \textit{«small amounts of high-value data»} without production noise.  
@@ -151,7 +151,7 @@
         %
         % subsection PROBLEM STATEMENT
         \subsection{Problem Statement} 
-        Public \texttt{SSH} services are some of the most frequent targets of credential stuffing and post-compromise persistence attacks (e.g.,\texttt{SSH} key injection, cronjob exploitation). Conventional defenses measures lack visibility of attacker's \texttt{TTPs} (Techniques, Tactics \& Procedures) due to inherent limitations in isolating malicious intent. A gap Spitzner attributes to systems' inability to distinguish between legitimate and hostile activity (Ch. 4). This research addresses two significant challenges: 
+        Public \texttt{SSH} services are some of the most frequent targets of credential stuffing and post-compromise persistence attacks (e.g.,\texttt{SSH} key injection, cronjob exploitation). Conventional defenses measures lack visibility of attacker's \texttt{TTPs} (Techniques, Tactics \& Procedures). A gap Spitzner attributes their inability to naturally distinguish between legitimate and hostile activity (Ch. 4). This research addresses three significant challenges: 
             
             - \texttt{Safe isolation of production access}: Mitigating Spitzner’s identified risk of collateral system compromise through architectural \enquote{separation of honeypot lures from administrative channels} (Ch. 3, 12).
 
@@ -226,20 +226,23 @@ failregex = %(cmnfailre)s
         
         
         \subsection{IPtables Redirection}
-        Using Spitzner's idea of port forwarding through Network Address Translation (NAT) (Ch. 12), all traffic to the standard SSH port (22) is re-routed to the Cowrie honeypot on port 2222. This helps separate the malicious activity from the legitimate usage taking place on port 2223, and helps support Spitzner's idea of compartmentalization to separate the honeypot from the production systems and avoid any conflicts (Ch. 12, pp. 317). Additionally, our group collaborators' IP addresses could be whitelisted for a much tighter defense. The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: both processes avoid conflicting with each other as they can restart separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
+        Using Spitzner's idea of port forwarding through Network Address Translation (NAT) (Ch. 12), all traffic to the standard SSH port (22) is re-routed to the Cowrie honeypot on port 2222. This helps separate the malicious activity from the legitimate usage taking place on port 2223, and helps support Spitzner's idea of compartmentalization to separate the honeypot from the production systems and avoid any conflicts (Ch. 12, p. 317). Additionally, our group collaborators' IP addresses could be whitelisted for a much tighter defense. 
+        
+        The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: both processes avoid conflicting with each other as they can restart separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
+
+ sudo apt install iptables-persistent netfilter persistent
  sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo ip6tables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
- sudo apt install iptables-persistent netfilter-persistent
  sudo netfilter-persistent save
         \end{lstlisting}
         
         %
         % %
-    %
-    % %
 
-
+        
+        %
+        % %
         \subsection{Validation Metrics}  
         \label{sec:validation}  
         
@@ -247,17 +250,21 @@ failregex = %(cmnfailre)s
         
 
 
-    \section{Cowrie Honeypot Deployment}
+    \section{Cowrie Honeypot Setup}
+    Honeypots differ by level of interaction: low-interaction emulates the minimal service much of the time to detect attackers; medium-interaction such as Cowrie employ a controlled environment withstanding an attacker's impact; high-interaction (like Honeynets) provides access to fully functioning Operating Systems allowing as much dynamic information gathering as possible.
+    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots} (Ch.9). Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to capture specific attacker behaviors. This section details the deployment of the medium-interaction Honeypot Cowrie on a AWS EC2 instance. 
+    
 \label{sec:cowrie}
-    \subsection{System Preparation}
-    A specific non-root user and a Python virtual environment isolate Cowrie's operations and therefore ensure that a least-privilege account reduces lateral movement threats in case of compromise. Find the latest official documentation at \href{https://docs.cowrie.org/en/latest/INSTALL.html}{Cowrie Documentation}.
+    \subsection{System Requirements}
+    Cowrie runs under a privileged account that's not root, with timed-out sudo privileges to ensure least privilege principle. Attack surface minimization is offered by authbind on port binding, eliminating traditional root escalation threats by privileged port allocation. Compartmentalization is used to isolate dependencies through Python virtual environments, which help hide each of the libraries and potential exploits from one another, no conflicts may arise. These measures specifically address reducing lateral movement possibilities in case of compromise. 
+    
     \begin{lstlisting}[language=bash,caption={Cowrie User Creation}]
-sudo apt-get install -y git python3-venv python3-pip libssl-dev libffi-dev build-essential libpython3-dev authbind # Binds privileged ports without root
+sudo apt-get install -y git python3-venv python3-pip libssl-dev libffi-dev build-essential libpython3-dev authbind
 sudo adduser --disabled-password --gecos "" cowrie   # Prevents password-based connections 
     \end{lstlisting}
 
-    \subsection{Honeypot Configuration}
-    Compartmentalize Cowrie within a virtual environment and enforce port isolation.
+    \subsection{Functional Configuration}
+    The following commands compartmentalize Cowrie within a virtual environment and enforce port isolation. Find the latest Cowrie official documentation at \href{https://docs.cowrie.org/en/latest/INSTALL.html}{docs.cowrie.org}.
     \begin{lstlisting}[language=bash,caption={Cowrie Honeypot Setup}]
 # Operate as cowrie user
 sudo su - cowrie  
@@ -274,6 +281,15 @@ sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.c
     \end{lstlisting}
 
 
+    %
+    % section Maximizing Engagement with Deception
+    \section{Maximizing Engagement with Deception}
+
+As Spitzner points out with respect to the psychological effects of deception, \enquote{This can confuse an attacker and potentially waste his time and resources} (Ch. 9), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived}. This suggests deception can be useful against human attackers, though it has limitations against automated attacks.
+
+
+
+
     % 
     % % DISCLAIMER 
     \begin{tcolorbox}[  
@@ -283,15 +299,10 @@ sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.c
         fontupper=\small,  
         sharp corners  
     ]  
-    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken in return. Additionally, cloud provider configurations (e.g., IAM, networking) are not included as implementation-specific and beyond the scope of this paper.  
+    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken in return. \enquote{The greater the level of interaction, the more functionality provided to the attacker, and the greater the complexity. Combined, these elements can introduce a great deal of risk} (Ch. 5).
     \end{tcolorbox}  
     %
     % %
-
-\subsection{Security Considerations}  
-
-
-The rollout enforcing multiple layers of protection: Cowrie executes under a non-root privileged account with timed-out sudo privileges, implementing the least privilege principle. Attack surface minimization is offered by authbind on port binding, eliminating traditional root escalation threats by virtue of privileged port allocation. Compartmentalization is used for dependency isolation through Python virtual environments, preventing library conflicts and encapsulating potential exploits. Finally, fail2ban integration (Section~\ref{sec:fail2ban}) protects administratively selectively protects port 2223 with ongoing uncontrolled attacker interaction with the honeypot at port 2222. 
 
 
 
