@@ -131,7 +131,7 @@
     %
     % ABSTRACT 
     \begin{abstract}        
-    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} \texttt{EC2} instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using \texttt{fail2ban}, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and customizing fake files to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. 
+    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} \texttt{EC2} instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using \texttt{fail2ban}, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and forging artifacts to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. This project's public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
     \end{abstract}
     \newpage
     %
@@ -141,12 +141,20 @@
     %
     % section INTRODUCTION
     \section{Introduction}
-    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. This report describes the configuration of a \texttt{cowrie} honeypot in a production AWS environment that was designed to mimic realistic infrastructure but isolate malicious activity from legitimate administrative activity. Through routing \textit{port 22} traffic to the honeypot and restricting production access to \textit{port 2223} with key-based authentication, the study enables monitoring of attacker activities in fine granularity without compromising the security of systems. The \texttt{fail2ban} program is employed for counteracting brute-force attacks against hardened administrative interfaces, while rules based on \texttt{iptables} are implemented to route opponents into the honeypot infrastructure. This project's public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
+
+As defined by \citet{spitzner2002honeypots}, 
+\enquote{a honeypot is a security resource whose value lies in being probed, attacked, or compromised} (p. 58).
+
+    
+    Lance Spitzner, a Senior Instructor for SANS Cybersecurity Leadership, established foundational principles in his 2002 book \textit{Honeypots: Tracking Hackers}. 
+Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on AWS positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises the obstacle of signature-based detection tools that inform attackers about the nature of our operation, \enquote{a system designed to be attacked} (p. 298). Also, attacker behaviors documented in 2002 remain prevalent even today.
+    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access, this proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-the-public SSH traffic to the honeypot and restriction of legitimate access with key-based authentication, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots provide \textit{«small amounts of high-value data»} without production noise.  
 
         %
         % subsection PROBLEM STATEMENT
         \subsection{Problem Statement} 
-        Public \texttt{SSH} services are most frequent targets of credential-stuffing attacks and post-compromise persistence methods such as \texttt{SSH} key injection and cronjob exploitation. Existing defensive measures have a tendency to lack the visibility to deeply analyze these malicious processes. This research addresses two significant challenges: (1) safe isolation of production access from honeypot bait to prevent collateral system compromise, and (2) the engineering of logging mechanisms that are able to capture attacker TTPs without affecting environmental integrity.
+        Public \texttt{SSH} services are some of the most frequent targets of credential stuffing and post-compromise persistence attacks (e.g.,\texttt{SSH} key injection, cronjob exploitation). Existing defensive measures lack visibility of attacker's \texttt{TTPs} (Techniques, Tactics \& Procedures), a gap
+        to deeply analyze these malicious processes. This research addresses two significant challenges: (1) safe isolation of production access from honeypot bait to prevent collateral system compromise, and (2) the engineering of logging mechanisms that are able to capture attacker TTPs without affecting environmental integrity.
         %
         % %
 
@@ -279,8 +287,8 @@ The rollout enforcing multiple layers of protection: Cowrie executes under a non
     % citations go here \cite{Exemple}.
     
     %Bibliography
-    % \nocite{*}
-    % \printbibliography[type=article,title=Articles]
+    \nocite{*}
+    \printbibliography[type=article,title=Articles]
 
 
 
@@ -315,4 +323,3 @@ The rollout enforcing multiple layers of protection: Cowrie executes under a non
 
 
 \end{document}
-
