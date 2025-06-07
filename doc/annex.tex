@@ -3,6 +3,8 @@
 
 \section{Annex: Validation for SSH Isolation \& Fail2ban Hardening}  
 \label{annex:network}
+\
+\
 \begin{lstlisting}[language=bash, label={annexes:network}, caption={Network Isolation Verification}]  
 # Verify port 22 redirects to Cowrie (2222) and admin port (2223) is exclusive  
 sudo nmap -sV -Pn -p 22,2222,2223 $EC2_PUBLIC_IP  
@@ -14,8 +16,6 @@ sudo iptables -t nat -L PREROUTING -v -n
 sudo ss -tulpn | grep -E ':22|:2222|:2223'  
 \end{lstlisting}  
 
-
-\todo{screenshot here}
 
 
 \begin{lstlisting}[language=bash, label={annexes:fail2ban}, caption={Fail2ban Efficacy Testing}]  
@@ -31,10 +31,6 @@ sudo fail2ban-client status ssh-admin
 
 
 
-\todo{screenshot here}
-
-
-
 \begin{lstlisting}[language=bash, label={annexes:ssh-hardening}, caption={SSH Service Hardening Validation}]  
 # 1. Verify active SSH configuration matches hardening intent (no fallback to weak protocols)  
 sudo sshd -T | grep -E '^ciphers|^kexalgorithms|^macs|^hostkeyalgorithms'  
@@ -46,7 +42,6 @@ nmap -Pn -p 2223 --script ssh2-enum-algos $EC2_PUBLIC_IP | grep -A 10 "algorithm
 ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@$EC2_PUBLIC_IP -p 2223  
 \end{lstlisting}  
 
-\todo{screenshot here}
 
 
 
@@ -56,7 +51,8 @@ ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@$EC2_
 
 \section{Annex: Cowrie Operational Validation}  
 \label{annex:cowrie-validation}  
-
+\
+\
 \begin{lstlisting}[language=bash,label={lst:cowrie-redirect},caption={Traffic Redirection Verification}]  
 # 1. Validate iptables NAT rules  
 sudo iptables -t nat -L PREROUTING -nv | grep 'tcp dpt:22 redir ports 2222'  
@@ -76,7 +72,6 @@ sudo journalctl -u cowrie -f | grep 'SSH connection closed'
 \begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Process Isolation Validation}]  
 # 3. Confirm execution context  
 ps -ef | grep cowrie | grep -v grep | awk '{print $1}' | uniq  
-# Expected output: 'cowrie'  
 \end{lstlisting}  
 
 
@@ -91,7 +86,8 @@ ps -ef | grep cowrie | grep -v grep | awk '{print $1}' | uniq
 
 \section{Annex: LLM Usage in this Project}  
 \label{annex:llm}  
-
+\
+\
 Large language models (LLMs) provided targeted support during this honeypot deployment, strictly limited to non-operational tasks. For documentation, LLMs assisted in drafting initial LaTeX templates for technical sections such as SSH hardening (2.1) and iptables redirection (2.3), with all configurations manually validated against AWS and Cowrie documentation. During troubleshooting, models proposed diagnostic commands for SSH permission conflicts (e.g., 'chmod' adjustments in §3.2), which were later tested in isolated Docker environments before EC2 implementation. LLMs were explicitly excluded from security-critical decisions: firewall rules, Fail2ban thresholds, and cryptographic settings in '/etc/ssh/sshd\_config' derived exclusively from NIST guidelines and Mozilla Infosec recommendations. No model influenced attacker engagement strategies, log analysis of captured TTPs, or live system interactions. 
 All AI-generated content underwent peer review by the project’s cybersecurity team, with particular scrutiny applied to network redirection mechanics and user permission workflows. Final configurations reflect human expertise, with LLMs serving solely as productivity accelerators for non-sensitive administrative tasks.    
 
