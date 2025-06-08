@@ -15,12 +15,12 @@ sudo iptables -t nat -L PREROUTING -v -n
 # Ensure no SSH service binds to port 22 (only Cowrie on 2222)  
 sudo ss -tulpn | grep -E ':22|:2222|:2223'  
 \end{lstlisting}  
-
+\
 
 
 \begin{lstlisting}[language=bash, label={annexes:fail2ban}, caption={Fail2ban Efficacy Testing}]  
 # Simulate key-based brute-forcing to trigger fail2ban  
-for i in {1..5}; do ssh -i /path/fake_key ubuntu@localhost -p 2223; done  
+for i in {1..5}; do ssh -i ~/.ssh/wrong_key.pem ubuntu@localhost -p 2223; done  
 
 # Verify fail2ban logged the bans (look for 'ssh-admin' jail)  
 sudo grep "ssh-admin" /var/log/fail2ban.log  
@@ -28,7 +28,7 @@ sudo grep "ssh-admin" /var/log/fail2ban.log
 # Check active bans (should list test IP)  
 sudo fail2ban-client status ssh-admin  
 \end{lstlisting}  
-
+\
 
 
 \begin{lstlisting}[language=bash, label={annexes:ssh-hardening}, caption={SSH Service Hardening Validation}]  
@@ -41,7 +41,7 @@ nmap -Pn -p 2223 --script ssh2-enum-algos $EC2_PUBLIC_IP | grep -A 10 "algorithm
 # 3. Confirm password authentication is globally disabled (even if bypass attempted)  
 ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@$EC2_PUBLIC_IP -p 2223  
 \end{lstlisting}  
-
+\
 
 
 
@@ -60,7 +60,7 @@ sudo iptables -t nat -L PREROUTING -nv | grep 'tcp dpt:22 redir ports 2222'
 # Confirm no direct binding to port 22  
 sudo nmap -sV -Pn -p 22,2222 $EC2_IP | grep -E '22/tcp|2222/tcp'  
 \end{lstlisting}  
-
+\
 \begin{lstlisting}[language=bash,label={lst:cowrie-access},caption={Honeypot Engagement Testing}]  
 # 2. Simulate attacker connection  
 ssh -o StrictHostKeyChecking=no invalid_user@$EC2_IP -p 22  
@@ -68,12 +68,12 @@ ssh -o StrictHostKeyChecking=no invalid_user@$EC2_IP -p 22
 # Verify session capture in logs  
 sudo journalctl -u cowrie -f | grep 'SSH connection closed'  
 \end{lstlisting}  
-
+\
 \begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Process Isolation Validation}]  
 # 3. Confirm execution context  
 ps -ef | grep cowrie | grep -v grep | awk '{print $1}' | uniq  
 \end{lstlisting}  
-
+\
 
 
 

@@ -83,7 +83,7 @@
     basicstyle=\ttfamily\footnotesize,
     backgroundcolor=\color{background},
     keywordstyle=\color{keyword}\bfseries,
-    commentstyle=\color{comment}\itshape,
+    commentstyle=\color{comment},
     stringstyle=\color{string},
     identifierstyle=\color{identifier},
     numberstyle=\tiny\color{gray},
@@ -100,7 +100,8 @@
     keepspaces=true, % Preserve whitespace
     upquote=true, % Ensure proper quote rendering
     captionpos=b,
-    belowcaptionskip=1em,
+    belowskip=-1.7em,
+    belowcaptionskip=1em,     
 }
 
 \begin{document}
@@ -143,17 +144,17 @@
     \section{Introduction}
 
     Lance Spitzner, a seminal researcher and Senior Instructor for SANS Cybersecurity Leadership, established foundational principles in his 2002 book \textit{Honeypots: Tracking Hackers}. 
-    Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on AWS positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, mainly signature-based detection tools that inform attackers about the underlying nature of our operation; \enquote{a system designed to be attacked} (p. 298). 
+    Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on AWS positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, such as legal liability (Ch.15) or signature-based detection tools tipping off hackers about the underlying nature of our operation; \enquote{a system designed to be attacked} (p. 298). 
     
     
-    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access, this proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-the-public SSH traffic to the honeypot and restriction of legitimate access with key-based authentication, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots provide \textit{«small amounts of high-value data»} without production noise.  
+    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access. This proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-Internet SSH traffic to the honeypot and restriction of legitimate access with cryptographic means, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots provide \textit{«small amounts of high-value data»} without production noise.  
 
         %
         % subsection PROBLEM STATEMENT
         \subsection{Problem Statement} 
-        Public \texttt{SSH} services are some of the most frequent targets of credential stuffing and post-compromise persistence attacks (e.g.,\texttt{SSH} key injection, cronjob exploitation). Conventional defenses measures lack visibility of attacker's \texttt{TTPs} (Techniques, Tactics \& Procedures). A gap Spitzner attributes their inability to naturally distinguish between legitimate and hostile activity (Ch. 4). This research addresses three significant challenges: 
+        Public \texttt{SSH} services are some of the most frequent targets of credential stuffing and post-compromise persistence attacks (e.g.,\texttt{SSH} key injection, cronjob exploitation). Conventional defenses measures lack visibility of attacker's \texttt{TTPs} (Techniques, Tactics \& Procedures). A gap Spitzner attributes to their inability to naturally distinguish between legitimate and hostile activity (Ch.4). This research addresses three significant challenges: 
             
-            - \texttt{Safe isolation of production access}: Mitigating Spitzner’s identified risk of collateral system compromise through architectural \enquote{separation of honeypot lures from administrative channels} (Ch. 3, 12).
+            - \texttt{Safe isolation of production access}: Mitigating Spitzner’s identified risk of collateral system compromise through architectural \enquote{separation of honeypot lures from administrative channels} (Ch.3, 12).
 
             - \texttt{Deception efficacy for engagement}: Designing credible system emulations (e.g., service banners, file structures, false credentials) to prolong attacker interaction and avoid detection as a honeypot.
 
@@ -167,11 +168,11 @@
         \subsection{Research Questions}
         In order to learn about attacker motives and organization through research honeypots, this study investigates:
 
-            - \texttt{Credential exploitation patterns}: Which username/password pairs dominate automated brute-force campaigns against internet-exposed SSH? (Extending Spitzner’s analysis of \enquote{targets of opportunity} and scripted tools in Ch. 4.) 
+            - \texttt{Credential exploitation patterns}: Which username/password pairs dominate automated brute-force campaigns against internet-exposed SSH? (Extending Spitzner’s analysis of \enquote{targets of opportunity} and scripted tools in Ch.4). 
 
-            - \texttt{Persistence mechanism prioritization}: How do attackers strategically deploy backdoors (e.g., key injections, cronjobs) post-compromise? \enquote{Persistence, not advanced technical skills, is how these attackers successfully break into a system.} (Ch. 2, p. 35)
+            - \texttt{Persistence mechanism prioritization}: How do attackers strategically deploy backdoors (e.g., key injections, cronjobs) post-compromise? \enquote{Persistence, not advanced technical skills, is how these attackers successfully break into a system.} (Ch.2, p. 35)
 
-            - \texttt{Decoy efficacy for intelligence gathering}: To what extent do fabricated system artifacts (e.g., \textit{/etc/shadow} entries) prolong attacker engagement to enhance TTP profiling? (Testing Spitzner’s concept of deception as \enquote{psychological weapons used to mess with and confuse a human attacker} in Ch. 4, p. 74).
+            - \texttt{Decoy efficacy for intelligence gathering}: To what extent do fabricated system artifacts (e.g., \textit{/etc/shadow} entries) prolong attacker engagement to enhance TTP profiling? (Testing Spitzner’s concept of deception as \enquote{psychological weapons used to mess with and confuse a human attacker} in Ch.4, p. 74).
             
         %
         % %
@@ -181,10 +182,10 @@
     %
     % section SSH ISOLATION &  HARDENING
     \section{SSH Isolation \& System Hardening}
-    Clear goal-setting, suitable interaction levels, reliable data collection, and risk mitigation are all highlighted in Spitzner's honeypot deployment framework (Ch. 12). In order to study automated SSH-based attacks, in this section we concentrate on segregating legitimate SSH access with cryptographic controls and configuring a simple intrusion prevention system called \textit{fail2ban}. Making sure that these techniques are in line with Spitzner's recommendations for safe and efficient honeypot operation.
+    Clear goal-setting, suitable interaction levels, reliable data collection, and risk mitigation are all highlighted in Spitzner's honeypot deployment framework (Ch.12). In order to study automated SSH-based attacks, in this section we concentrate on segregating legitimate SSH access with cryptographic controls and configuring a simple intrusion prevention system called \textit{fail2ban}. Making sure that these techniques are in line with Spitzner's recommendations for safe and efficient honeypot operation.
         
         \subsection{Administrative Controlled Access}
-    Administrative SSH access is limited to key-based authentication on a non-standard port (e.g.: 2223) in accordance with Spitzner's advice to reduce risk through secure configurations (Ch. 12). By removing password-based vulnerabilities, this reduces the attack surface and is consistent with the idea of protecting the underlying platform. The setup ensures strong isolation of authorized access by enforcing contemporary cryptographic standards to stop downgrade attacks.        
+    Administrative SSH access is limited to key-based authentication on a non-standard port (e.g.: 2223) in accordance with Spitzner's advice to reduce risk through secure configurations (Ch.12). By removing password-based vulnerabilities, this reduces the attack surface and is consistent with the idea of protecting the underlying platform. The setup ensures strong isolation of authorized access by enforcing contemporary cryptographic standards to stop downgrade attacks.        
         \begin{lstlisting}[language=bash,caption={Securing Legitimate Access}]
  # /etc/ssh/sshd_config
  Port 2223
@@ -203,7 +204,7 @@
         \end{lstlisting}
         
         
-        \subsection{Fail2ban Configuration} To improve detection of unauthorized access attempts, Fail2Ban is set up to monitor key-based authentication failures on port 2223 and following Spitzner's assertion that detection is a central function of a honeypot (Ch. 12), this configuration targets repeat public key failures, which can be facilitated through credential-stuffing attacks. Potentially malicious SSH connections will have fair, high-fidelity logging of attempts to authenticate via public keys. Given that the honeypot contains a deliberately misleading environment, the configuration will not interfere with coded logging and will be able to detect ongoing attacks. This configuration does not monitor any password attempts, as password-based administrative access has been disabled, to avoid receiving false positive logging data.
+        \subsection{Fail2ban Configuration} To improve detection of unauthorized access attempts, Fail2Ban is set up to monitor key-based authentication failures on port 2223 and following Spitzner's assertion that detection is a central function of a honeypot (Ch.12), this configuration targets repeat public key failures, which can be facilitated through credential-stuffing attacks. Potentially malicious SSH connections will have fair, high-fidelity logging of attempts to authenticate via public keys. Given that the honeypot contains a deliberately misleading environment, the configuration will not interfere with coded logging and will be able to detect ongoing attacks. This configuration does not monitor any password attempts, as password-based administrative access has been disabled, to avoid receiving false positive logging data.
         
         \begin{lstlisting}[language=bash,caption={Custom Jail Rules}]
  # /etc/fail2ban/jail.d/ssh-admin.conf
@@ -226,7 +227,7 @@ failregex = %(cmnfailre)s
         
         
         \subsection{IPtables Redirection}
-        Using Spitzner's idea of port forwarding through Network Address Translation (NAT) (Ch. 12), all traffic to the standard SSH port (22) is re-routed to the Cowrie honeypot on port 2222. This helps separate the malicious activity from the legitimate usage taking place on port 2223, and helps support Spitzner's idea of compartmentalization to separate the honeypot from the production systems and avoid any conflicts (Ch. 12, p. 317). Additionally, our group collaborators' IP addresses could be whitelisted for a much tighter defense. 
+        Using Spitzner's idea of port forwarding through Network Address Translation (NAT) (Ch.12), all traffic to the standard SSH port (22) is re-routed to the Cowrie honeypot on port 2222. This helps separate the malicious activity from the legitimate usage taking place on port 2223, and helps support Spitzner's idea of compartmentalization to separate the honeypot from the production systems and avoid any conflicts (Ch.12). Additionally, our group collaborators' IP addresses could be whitelisted for a much tighter defense. 
         
         The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: both processes avoid conflicting with each other as they can restart separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
@@ -246,7 +247,7 @@ failregex = %(cmnfailre)s
         \subsection{Validation Metrics}  
         \label{sec:validation}  
         
-        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. The following \hyperref[annexes:network]{Annex} align with Spitzner's focus on testing processes to validate functionality. Validation for network isolation occurs with nmap and iptables to verify traffic is being redirected. Fail2Ban regex exactness is tested against simulated brute-forcing of SSH keys. SSH configuration is validated for compliance to cryptography and resist downgrade attacks.
+        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. \hyperref[annexes:network]{Annex A} aligns with Spitzner's focus on testing processes to validate functionality. Validation for network isolation occurs with nmap and iptables to verify traffic is being redirected. Fail2Ban regex exactness is tested against simulated brute-forcing of SSH keys. SSH configuration is validated for compliance to cryptography and resist downgrade attacks.
         
 
 
@@ -256,7 +257,7 @@ failregex = %(cmnfailre)s
     
 \label{sec:cowrie}
     \subsection{System Requirements}
-    Cowrie runs under a privileged account that's not root, with timed-out sudo privileges to ensure least privilege principle. Attack surface minimization is offered by authbind on port binding, eliminating traditional root escalation threats by privileged port allocation. Compartmentalization is used to isolate dependencies through Python virtual environments, which help hide each of the libraries and potential exploits from one another, no conflicts may arise. These measures specifically address reducing lateral movement possibilities in case of compromise. 
+    Cowrie runs under a privileged account that's not root, with timed-out sudo privileges to ensure least privilege principle. Some attack surface minimization is possible using authbind on port binding, eliminating known privilege escalation vectors with elevated port allocation. The Python virtual environments compartmentalize the set of dependencies, which helps hiding each of the libraries and potential exploits from one another. These measures specifically address mitigating lateral movement eventualities in case of compromise. 
     
     \begin{lstlisting}[language=bash,caption={Cowrie User Creation}]
 sudo apt-get install -y git python3-venv python3-pip libssl-dev libffi-dev build-essential libpython3-dev authbind
@@ -274,19 +275,12 @@ cd cowrie
 # Isolate dependencies using Python venv
 python3 -m venv cowrie-env  
 source cowrie-env/bin/activate  
+pip install --upgrade pip
 pip install --upgrade -r requirements.txt  
 
 # Configure listener port (2222) to align with iptables redirection (section 2.3)
 sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.cfg  
     \end{lstlisting}
-
-
-    %
-    % section Maximizing Engagement with Deception
-    \section{Maximizing Engagement with Deception}
-
-As Spitzner points out with respect to the psychological effects of deception, \enquote{This can confuse an attacker and potentially waste his time and resources} (Ch. 9), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived}. This suggests deception can be useful against human attackers, though it has limitations against automated attacks.
-
 
 
 
@@ -299,10 +293,37 @@ As Spitzner points out with respect to the psychological effects of deception, \
         fontupper=\small,  
         sharp corners  
     ]  
-    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken in return. \enquote{The greater the level of interaction, the more functionality provided to the attacker, and the greater the complexity. Combined, these elements can introduce a great deal of risk} (Ch. 5).
+    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken in return. \enquote{The greater the level of interaction, the more functionality provided to the attacker, and the greater the complexity. Combined, these elements can introduce a great deal of risk} (Ch.5, p. 91).
     \end{tcolorbox}  
     %
     % %
+    
+
+
+    %
+    % section Maximizing Engagement with Deception
+    \section{Maximizing Engagement with Deception}
+
+As Spitzner points out with respect to the psychological effects of deception, \enquote{Deception and deterrence are designed as psychological weapons to confuse
+people. However, these concepts fail if those people are not paying attention} (Ch.4, p. 73), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived} (Ch.9, p. 197). This suggests that while deception-based honeypots can disrupt a human attacker by manipulating human cognitive biases, their usefulness against automated attacks is heavily dependent on detection and analysis; you need a balance of behavioral strategies for human adversaries and good technical defenses to capture and analyze automated threats. This section relates some interesting deceptive functionalities Cowrie supports.
+
+    \subsection{Forged Filesystem}
+Cowrie's filesystem trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence, each Cowrie session spawns a separate virtual filesystem where attackers can execute destructive commands (rm, chmod) or exfiltrate fake credentials—all operations disappearing after the session without host effect. It efficiently accomplishes this with metadata serialization, binary files with \textit{.pickle} extension. These are generated out of a decoy filesystem, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} that is well rounded already, it is also possible to create and load our own.
+ \begin{lstlisting}[language=bash,caption={Deceptive Filesystem Manipulation}]
+ # Print content of default pickle 
+ python -c "import pickle; print(pickle.load(open('/home/cowrie/cowrie/data/fs.pickle','rb')))" 
+ # Generate a pickle out of any directory of your choosing
+ bin/createfs -l honeyfs/ -d 4 -o custom.pickle  
+ # Load custom.pickle to Cowrie 
+ sed -i 's|^filesystem = .*|filesystem = ./custom.pickle|' etc/cowrie.cfg
+    \end{lstlisting}
+
+This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) employed full disk imaging or physical partition cloning in order to sandbox attacker activity, demanding excessive storage and memory on a per-session basis. Commercial offerings like Specter (Ch.7) and open-source endeavors like Honeyd (Ch.8) were also faced with this: they either emulated small filesystem hierarchies (entrapping sophisticated attackers) or cloned entire disks (burdening host resources). This duplication at the disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a filesystem's structure from physical storage, enabling realistic interaction without operational overhead.
+
+    \subsection{Command Output Obfuscation}
+
+
+    \subsection{Service Emulation}
 
 
 
