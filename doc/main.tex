@@ -132,7 +132,7 @@
     %
     % ABSTRACT 
     \begin{abstract}        
-    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} \texttt{EC2} instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using \texttt{fail2ban}, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and forging artifacts to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. Additionally, cloud provider configurations (e.g., IAM, networking, key management) are not included as implementation-specific and beyond the scope of this paper. This project's public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
+    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} public Cloud instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using an IPS, redirecting malicious traffic to \texttt{cowrie}, forging artifacts to track attacker activity and setting up a malicious web-service. A walkthrough of all configurations is covered in order to demonstrate a complete implementation with Linux, as this paper remains focused on the hands-on aspect of honeypot-based deception. However, cloud provider configurations (e.g., IAM, networking, key management) are not included as implementation-specific and beyond the scope of this paper. This project is based on the continuity of L. Spitzner's 2002 book \textit{Honeypots: Tracking Hackers}. Our public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
     \end{abstract}
     \newpage
     %
@@ -147,7 +147,7 @@
     Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on public cloud positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, such as legal liability (Ch.15) or signature-based detection tools tipping off hackers about the underlying nature of our operation; \enquote{a system designed to be attacked} (p. 298). 
     
     
-    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access. This proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-Internet SSH traffic to the honeypot and restriction of legitimate access with cryptographic means, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots provide \textit{«small amounts of high-value data»} without production noise.  
+    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access. This proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-Internet SSH traffic to the honeypot and restriction of legitimate access with cryptographic means, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots \enquote{collect small amounts of [..] high-value data} (Ch.4, p. 68) without production noise.  
 
         %
         % subsection PROBLEM STATEMENT
@@ -368,10 +368,14 @@ sudo -u django_honeypot sqlite3 /opt/django_honeypot/db.sqlite3 ".schema admin_h
 \end{lstlisting}  
 
 
-    \subsection{Command Output Obfuscation / fake cryptographic credentials}
+    \subsection{Fabricated Cryptographic Credentials}
 
 
+\section{Analysis: Attack Pattern \& TTPs}
 
+\subsection{Credential Exploitation Patterns}
+\subsection{Persistence Mechanism}
+\subsection{Decoy Efficacy Validation}
 
 
     
