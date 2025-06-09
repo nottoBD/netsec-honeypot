@@ -1,5 +1,37 @@
 \newpage
-% \section*{Annexes}
+
+\newpage 
+
+
+\section{Annex: LLM Usage for this Project}  
+\label{annex:llm}  
+\
+\
+
+
+\subsection*{Methodological Approach}
+Large Language Models (LLMs) were strategically employed during the realization of this project, mainly as \emph{collaborative augmentation tools} rather than content generators. The following guidelines are to be respected in order to keep control over LLMs for work.
+
+--- \textbf{Verification-Centric Deployment}: LLMs' output is heavily dependent on its user's own comprehension, AI will not do more than instructed to, it will not \texttt{consciously} ask user a question, it will not compel you to do anything, but it is a decent corrector and will definitely be able to give suggestions that go in the right direction. All model outputs undergo cross-validation against credible and up-to-date sources such as; official documentation (Linux man pages, Git repository documentation, AWS Guides), academic literature (Spitzner's foundational honeypot frameworks, MS Cybersecurity courses), security best practices and standards. Not one technical implementation (e.g.: IAM policies, iptables rules, or authentication logic) were deployed before thorough validation and edge-case mitigation.
+
+--- \textbf{Controlled Application}: LLMs' interactions were constrained to: debugging assistance for Python scripting and \textit{systemd}-based Linux administration, technical documentation refinement (post-human draft), architectural brainstorming (especially in understanding distinct public Cloud providers' lingo for equivalent functionalities). Original research material or system designs created solely from LLMs output alone were absolutely forbidden and so was plagiarism. Finally, results of the research are human-produced only and the result of attack patterns that were indeed witnessed within our honeypot network.
+
+\subsection*{Operational Safeguards}
+The implementation incorporated safeguards to preserve academic integrity:
+
+--- \textbf{Input Sanitization Protocol}: All project-specific identifiers (IP addresses, credentials, API
+keys) were redacted automatically before any LLM interaction, preventing potential data leakage through model training vectors.
+
+
+--- \textbf{Bias Mitigation}: Model output to attacker behavior patterns was triangulated with
+honeypot telemetry data and peer-reviewed threat intelligence reports to counter potential algorithmic hallucinations. Model-derived hypotheses of attacker tactics (e.g., SSH bruteforce patterns were utilized solely as preliminary filters on our empirical honeypot data analysis.
+
+
+\
+
+
+
+\newpage
 
 \section{Annex: Validation for SSH Isolation \& Fail2ban Hardening}  
 \label{annex:network}
@@ -77,18 +109,6 @@ ps -ef | grep cowrie | grep -v grep | awk '{print $1}' | uniq
 
 
 
-\newpage
 
-% NEW ANNEX HERE
-
-\newpage 
-
-
-\section{Annex: LLM Usage in this Project}  
-\label{annex:llm}  
-\
-\
-Large language models (LLMs) provided targeted support during this honeypot deployment, strictly limited to non-operational tasks. For documentation, LLMs assisted in drafting initial LaTeX templates for technical sections such as SSH hardening (2.1) and iptables redirection (2.3), with all configurations manually validated against AWS and Cowrie documentation. During troubleshooting, models proposed diagnostic commands for SSH permission conflicts (e.g., 'chmod' adjustments in §3.2), which were later tested in isolated Docker environments before EC2 implementation. LLMs were explicitly excluded from security-critical decisions: firewall rules, Fail2ban thresholds, and cryptographic settings in '/etc/ssh/sshd\_config' derived exclusively from NIST guidelines and Mozilla Infosec recommendations. No model influenced attacker engagement strategies, log analysis of captured TTPs, or live system interactions. 
-All AI-generated content underwent peer review by the project’s cybersecurity team, with particular scrutiny applied to network redirection mechanics and user permission workflows. Final configurations reflect human expertise, with LLMs serving solely as productivity accelerators for non-sensitive administrative tasks.    
 
 % END

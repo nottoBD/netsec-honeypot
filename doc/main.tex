@@ -248,7 +248,7 @@ failregex = %(cmnfailre)s
         \subsection{Validation Metrics}  
         \label{sec:validation}  
         
-        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. \hyperref[annexes:network]{Annex A} aligns with Spitzner's focus on testing processes to validate functionality. Validation for network isolation occurs with nmap and iptables to verify traffic is being redirected. Fail2Ban regex exactness is tested against simulated bruteforce of SSH keys. SSH configuration is validated for cryptographic compliance and resists downgrade attacks.
+        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. \hyperref[annexes:network]{Annex B} aligns with Spitzner's focus on testing processes to validate functionality. Validation for network isolation occurs with nmap and iptables to verify traffic is being redirected. Fail2Ban regex exactness is tested against simulated bruteforce of SSH keys. SSH configuration is validated for cryptographic compliance and resists downgrade attacks.
         
 
 
@@ -374,14 +374,32 @@ sudo -u django_honeypot sqlite3 /opt/django_honeypot/db.sqlite3 ".schema admin_h
 \section{Analysis: Attack Pattern \& TTPs}
 
 \subsection{Credential Exploitation Patterns}
+    % Top 10 username/password pairs from brute-force attacks
+
+    % Comparison to Spitzner's 2002 findings (e.g., root:admin persistence)
+
+    % Novel patterns: Cloud IAM roles, container-related usernames
+
+
 \subsection{Persistence Mechanism}
+
+% Case study: Attacker workflow from compromise to C2 setup
+
+
 \subsection{Decoy Efficacy Validation}
 
 
     
+    % Engagement metrics:
+    % Deception Tactic	Avg. Session Duration	Commands Executed
+    % Baseline (no decoys)	2.1 min	4.2
+    % Fake Filesystem	8.7 min	12.5
+    % Cryptographic Lures	14.2 min	18.3
+
+    % Attractor/Repellent artifacts (e.g., fake_credentials.txt vs. .honeypot_detection files)
 
 
-
+\section{Conclusion \& Future Work}
 
 
 
