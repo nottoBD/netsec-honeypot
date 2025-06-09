@@ -1,0 +1,20 @@
+[Unit]
+Description=Gunicorn for Django Honeypot
+After=network.target
+
+[Service]
+User=django_honeypot
+Group=www-data
+Restart=always
+RestartSec=3
+Environment="PATH=/opt/django_honeypot/venv/bin"
+WorkingDirectory=/opt/django_honeypot
+ExecStart=/opt/django_honeypot/venv/bin/gunicorn \
+    --access-logfile - \
+    --workers 3 \
+    --bind 0.0.0.0:8000 \
+    honeypot_project.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+
