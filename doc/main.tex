@@ -132,7 +132,7 @@
     %
     % ABSTRACT 
     \begin{abstract}        
-    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} \texttt{EC2} instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using \texttt{fail2ban}, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and forging artifacts to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. Additionally, cloud provider configurations (e.g., IAM, networking) are not included as implementation-specific and beyond the scope of this paper. This project's public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
+    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} \texttt{EC2} instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using \texttt{fail2ban}, redirecting malicious traffic to \texttt{cowrie} via \texttt{iptables}, and forging artifacts to track attacker activity. A walkthrough of the settings is covered to demonstrate a complete implementation in \texttt{cowrie}, as this paper remains focused on the hands-on aspect of honeypot-based deception. Additionally, cloud provider configurations (e.g., IAM, networking, key management) are not included as implementation-specific and beyond the scope of this paper. This project's public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
     \end{abstract}
     \newpage
     %
@@ -144,7 +144,7 @@
     \section{Introduction}
 
     Lance Spitzner, a seminal researcher and Senior Instructor for SANS Cybersecurity Leadership, established foundational principles in his 2002 book \textit{Honeypots: Tracking Hackers}. 
-    Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on AWS positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, such as legal liability (Ch.15) or signature-based detection tools tipping off hackers about the underlying nature of our operation; \enquote{a system designed to be attacked} (p. 298). 
+    Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on public cloud positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, such as legal liability (Ch.15) or signature-based detection tools tipping off hackers about the underlying nature of our operation; \enquote{a system designed to be attacked} (p. 298). 
     
     
     With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access. This proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-Internet SSH traffic to the honeypot and restriction of legitimate access with cryptographic means, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots provide \textit{«small amounts of high-value data»} without production noise.  
@@ -232,10 +232,11 @@ failregex = %(cmnfailre)s
         The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: both processes avoid conflicting with each other as they can restart separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
 
- sudo apt install iptables-persistent netfilter persistent
+ sudo apt install iptables-persistent netfilter-persistent
  sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo ip6tables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo netfilter-persistent save
+ sudo iptables -t nat -L -n -v
         \end{lstlisting}
         
         %
@@ -253,7 +254,7 @@ failregex = %(cmnfailre)s
 
     \section{Cowrie Honeypot Setup}
     Honeypots differ by level of interaction: low-interaction emulates the minimal service much of the time to detect attackers; medium-interaction such as Cowrie employ a controlled environment withstanding an attacker's impact; high-interaction (like Honeynets) provides access to fully functioning Operating Systems allowing as much dynamic information gathering as possible.
-    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots} (Ch.9). Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to capture specific attacker behaviors. This section details the deployment of the medium-interaction Honeypot Cowrie on a AWS EC2 instance. 
+    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots} (Ch.9). Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to capture specific attacker behaviors. This section details the deployment of the medium-interaction Honeypot Cowrie in a Ubuntu virtual machine. 
     
 \label{sec:cowrie}
     \subsection{System Requirements}
@@ -262,6 +263,11 @@ failregex = %(cmnfailre)s
     \begin{lstlisting}[language=bash,caption={Cowrie User Creation}]
 sudo apt-get install -y git python3-venv python3-pip libssl-dev libffi-dev build-essential libpython3-dev authbind
 sudo adduser --disabled-password --gecos "" cowrie   # Prevents password-based connections 
+sudo usermod -a -G sudo cowrie
+
+sudo touch /etc/authbind/byport/22
+sudo chown cowrie:cowrie /etc/authbind/byport/22
+sudo chmod 770 /etc/authbind/byport/22
     \end{lstlisting}
 
     \subsection{Functional Configuration}
@@ -293,7 +299,7 @@ sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.c
         fontupper=\small,  
         sharp corners  
     ]  
-    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken in return. \enquote{The greater the level of interaction, the more functionality provided to the attacker, and the greater the complexity. Combined, these elements can introduce a great deal of risk} (Ch.5, p. 91).
+    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken. \enquote{The greater the level of interaction, the more functionality provided to the attacker, and the greater the complexity. Combined, these elements can introduce a great deal of risk} (Ch.5, p. 91).
     \end{tcolorbox}  
     %
     % %
@@ -308,22 +314,24 @@ As Spitzner points out with respect to the psychological effects of deception, \
 people. However, these concepts fail if those people are not paying attention} (Ch.4, p. 73), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived} (Ch.9, p. 197). This suggests that while deception-based honeypots can disrupt a human attacker by manipulating human cognitive biases, their usefulness against automated attacks is heavily dependent on detection and analysis; you need a balance of behavioral strategies for human adversaries and good technical defenses to capture and analyze automated threats. This section relates some interesting deceptive functionalities Cowrie supports.
 
     \subsection{Forged Filesystem}
-Cowrie's filesystem trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence, each Cowrie session spawns a separate virtual filesystem where attackers can execute destructive commands (rm, chmod) or exfiltrate fake credentials—all operations disappearing after the session without host effect. It efficiently accomplishes this with metadata serialization, binary files with \textit{.pickle} extension. These are generated out of a decoy filesystem, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} that is well rounded already, it is also possible to create and load our own.
+Cowrie's filesystem trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence, each Cowrie session spawns a separate virtual filesystem where attackers can execute destructive commands (rm, chmod) or exfiltrate credentials. All operations reset post-session without further effect. It efficiently accomplishes this with metadata serialization, binary files with the \textit{.pickle} extension. These are generated out of a decoy filesystem, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} that is well rounded already. Using honeyfs and its \textit{createfs} command, we are able to integrate the actual content files for the decoy filesystem.
  \begin{lstlisting}[language=bash,caption={Deceptive Filesystem Manipulation}]
  # Print content of default pickle 
  python -c "import pickle; print(pickle.load(open('/home/cowrie/cowrie/data/fs.pickle','rb')))" 
  # Generate a pickle out of any directory of your choosing
  bin/createfs -l honeyfs/ -d 4 -o custom.pickle  
- # Load custom.pickle to Cowrie 
- sed -i 's|^filesystem = .*|filesystem = ./custom.pickle|' etc/cowrie.cfg
+ # Set custom.pickle in Cowrie config file 
+ sed -i 's|^filesystem = .*|filesystem = ./custom.pickle|' /home/cowrie/cowrie/etc/cowrie.cfg
     \end{lstlisting}
 
-This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) employed full disk imaging or physical partition cloning in order to sandbox attacker activity, demanding excessive storage and memory on a per-session basis. Commercial offerings like Specter (Ch.7) and open-source endeavors like Honeyd (Ch.8) were also faced with this: they either emulated small filesystem hierarchies (entrapping sophisticated attackers) or cloned entire disks (burdening host resources). This duplication at the disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a filesystem's structure from physical storage, enabling realistic interaction without operational overhead.
-
-    \subsection{Command Output Obfuscation}
+This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) that employed full disk imaging or physical partition cloning in order to sandbox attacker activity. Which were excessively resource consuming for both logistic and operational dimensions. Commercial offerings like Specter (Ch.7) and open-source standalone like Honeyd (Ch.8) were also facing similar issues; they either emulated small filesystem hierarchies or cloned entire disks, such duplication at disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a filesystem's structure from physical storage, enabling realistic interaction without operational overhead.
 
 
     \subsection{Service Emulation}
+
+    
+    \subsection{Command Output Obfuscation}
+
 
 
 
