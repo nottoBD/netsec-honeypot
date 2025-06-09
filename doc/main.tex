@@ -182,10 +182,10 @@
     %
     % section SSH ISOLATION &  HARDENING
     \section{SSH Isolation \& System Hardening}
-    Clear goal-setting, suitable interaction levels, reliable data collection, and risk mitigation are all highlighted in Spitzner's honeypot deployment framework (Ch.12). In order to study automated SSH-based attacks, in this section we concentrate on segregating legitimate SSH access with cryptographic controls and configuring a simple intrusion prevention system called \textit{fail2ban}. Making sure that these techniques are in line with Spitzner's recommendations for safe and efficient honeypot operation.
+    Clear goal-setting, suitable interaction levels, reliable data collection, and risk mitigation are all highlighted in Spitzner's honeypot deployment framework (Ch.12). In order to study automated SSH-based attacks, in this section we concentrate on segregating legitimate SSH access with cryptographic controls and configuring a simple intrusion prevention system called \textit{fail2ban}. Ensuring that these techniques are in line with Spitzner's recommendations for safe and efficient honeypot operation.
         
         \subsection{Administrative Controlled Access}
-    Administrative SSH access is limited to key-based authentication on a non-standard port (e.g.: 2223) in accordance with Spitzner's advice to reduce risk through secure configurations (Ch.12). By removing password-based vulnerabilities, this reduces the attack surface and is consistent with the idea of protecting the underlying platform. The setup ensures strong isolation of authorized access by enforcing contemporary cryptographic standards to stop downgrade attacks.        
+    Administrative SSH access is limited to key-based authentication on a non-standard port (e.g.: 2223) in accordance with Spitzner's advice to reduce risk through secure configurations (Ch.12). By removing password-based vulnerabilities, this reduces the attack surface and is consistent with the idea of protecting the underlying platform. The setup ensures strong isolation of authorized access by enforcing contemporary cryptographic standards to stop downgrade attacks. Find the complete configuration walk-through on \href{https://github.com/nottoBD/netsec-cowrie-honey}{our git repository}.        
         \begin{lstlisting}[language=bash,caption={Securing Legitimate Access}]
  # /etc/ssh/sshd_config
  Port 2223
@@ -248,13 +248,13 @@ failregex = %(cmnfailre)s
         \subsection{Validation Metrics}  
         \label{sec:validation}  
         
-        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. \hyperref[annexes:network]{Annex A} aligns with Spitzner's focus on testing processes to validate functionality. Validation for network isolation occurs with nmap and iptables to verify traffic is being redirected. Fail2Ban regex exactness is tested against simulated brute-forcing of SSH keys. SSH configuration is validated for compliance to cryptography and resist downgrade attacks.
+        To ensure rigorous validation, we verify component functionality and isolation using cybersecurity tools. \hyperref[annexes:network]{Annex A} aligns with Spitzner's focus on testing processes to validate functionality. Validation for network isolation occurs with nmap and iptables to verify traffic is being redirected. Fail2Ban regex exactness is tested against simulated bruteforce of SSH keys. SSH configuration is validated for cryptographic compliance and resists downgrade attacks.
         
 
 
     \section{Cowrie Honeypot Setup}
     Honeypots differ by level of interaction: low-interaction emulates the minimal service much of the time to detect attackers; medium-interaction such as Cowrie employ a controlled environment withstanding an attacker's impact; high-interaction (like Honeynets) provides access to fully functioning Operating Systems allowing as much dynamic information gathering as possible.
-    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots} (Ch.9). Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to capture specific attacker behaviors. This section details the deployment of the medium-interaction Honeypot Cowrie in a Ubuntu virtual machine. 
+    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots} (Ch.9). Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to log specific attacker behavior. The deployment of a medium-interaction Cowrie Honeypot is described here for a Ubuntu 24 virtual machine.
     
 \label{sec:cowrie}
     \subsection{System Requirements}
@@ -314,7 +314,7 @@ As Spitzner points out with respect to the psychological effects of deception, \
 people. However, these concepts fail if those people are not paying attention} (Ch.4, p. 73), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived} (Ch.9, p. 197). This suggests that while deception-based honeypots can disrupt a human attacker by manipulating human cognitive biases, their usefulness against automated attacks is heavily dependent on detection and analysis; you need a balance of behavioral strategies for human adversaries and good technical defenses to capture and analyze automated threats. This section relates some interesting deceptive functionalities Cowrie supports.
 
     \subsection{Forged Filesystem}
-Cowrie's filesystem trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence, each Cowrie session spawns a separate virtual filesystem where attackers can execute destructive commands (rm, chmod) or exfiltrate credentials. All operations reset post-session without further effect. It efficiently accomplishes this with metadata serialization, binary files with the \textit{.pickle} extension. These are generated out of a decoy filesystem, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} that is well rounded already. Using honeyfs and its \textit{createfs} command, we are able to integrate the actual content files for the decoy filesystem.
+Cowrie's filesystem trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence, each Cowrie session spawns a separate virtual filesystem where attackers can execute destructive commands (rm, chmod) or exfiltrate credentials. All operations reset post-session without further effect. It efficiently accomplishes this with metadata serialization, binary files with the \textit{.pickle} extension. These are generated out of a decoy filesystem, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} that is well rounded already. Using \href{https://github.com/cowrie/cowrie/blob/main/docs/HONEYFS.rst}{honeyfs} and its \textit{createfs} command, we are able to integrate the actual content files for the decoy filesystem.
  \begin{lstlisting}[language=bash,caption={Deceptive Filesystem Manipulation}]
  # Print content of default pickle 
  python -c "import pickle; print(pickle.load(open('/home/cowrie/cowrie/data/fs.pickle','rb')))" 
@@ -324,13 +324,51 @@ Cowrie's filesystem trickery is specifically focusing on exploiting cognitive en
  sed -i 's|^filesystem = .*|filesystem = ./custom.pickle|' /home/cowrie/cowrie/etc/cowrie.cfg
     \end{lstlisting}
 
-This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) that employed full disk imaging or physical partition cloning in order to sandbox attacker activity. Which were excessively resource consuming for both logistic and operational dimensions. Commercial offerings like Specter (Ch.7) and open-source standalone like Honeyd (Ch.8) were also facing similar issues; they either emulated small filesystem hierarchies or cloned entire disks, such duplication at disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a filesystem's structure from physical storage, enabling realistic interaction without operational overhead.
+This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) that employed full disk imaging or physical partition cloning in order to sandbox attacker activity. Which were excessively resource consuming for both logistic and operational dimensions. Commercial offerings like Specter (Ch.7) and open-source standalone like Honeyd (Ch.8) were also facing similar issues; they either emulated small filesystem hierarchies or cloned entire disks. Such duplication at disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a filesystem's structure from physical storage, enabling realistic interaction without operational overhead.
 
 
-    \subsection{Service Emulation}
 
+    \subsection{Malicious Web Service}
     
-    \subsection{Command Output Obfuscation}
+Web application interfaces are valuable attack targets, particularly administrative portals where credential compromise yields significant operational advantages. This psychological vulnerability is targeted by the piece of software \href{https://github.com/dmpayton/django-admin-honeypot}{django-admin-honeypot}, which presents a carefully crafted illusion of privileged access. This web deployment extends Cowrie's deceptions principles to the web layer through the use of Nginx reverse proxying and Gunicorn to appear as an operational Django backend administrative interface. This tactic of deception leverages cognitive bias in target selection, so that the attackers target seemingly misconfigured admin panels. While automated scanners might miss the session anomalies in HTTP redirects, manual attackers scanning for Django vulnerabilities receive deliberate behavioral hints such as bad credentials inducing genuine error feedback, and session cookies mirroring Django security headers. Running on a common port HTTP 80, this deployment is publicly available in parallel of the Cowrie SSH honeypot. 
+
+Its capabilities focus on Credential Capture; Login attempts are channeled towards a
+SQLite3 database, collecting usernames, passwords, and attack times. The \textit{admin\_honeypot\_loginattempt} schema is made available to hold forensic
+value, logging IPs, user agents, and brute-force modes while differentiating attackers in transient transactions. The \textit{django\_honeypot} account's restricted permissions (\textit{-{-}system -{-}no-create-home}) ensure raw credentials never persist in memory or disk buffers. This implementation practices ethical honeypoting by avoiding credential reuse.
+    
+\begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Ubuntu Setup of a Django Honeypot Webservice}]  
+# Dependency Installation
+sudo apt-get install sqlite3
+
+# Secure User Isolation
+sudo adduser --system --group --no-create-home django_honeypot
+sudo mkdir /opt/django_honeypot
+sudo chown django_honeypot:django_honeypot /opt/django_honeypot
+
+# Environment Compartmentalization
+sudo -u django_honeypot python3 -m venv /opt/django_honeypot/venv  # Dependency isolation
+sudo -u django_honeypot /opt/django_honeypot/venv/bin/pip install django django-admin-honeypot gunicorn
+
+# Project Initialization
+sudo -u django_honeypot /opt/django_honeypot/venv/bin/django-admin startproject honeypot_project /opt/django_honeypot
+
+# Service Integration
+sudo ln -s /etc/nginx/sites-available/django_honeypot /etc/nginx/sites-enabled/ # Exposure
+sudo nginx -t && sudo systemctl reload nginx
+sudo systemctl start gunicorn
+sudo systemctl enable gunicorn
+
+# Attack Surface
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+sudo netfilter-persistent save
+
+# View Attack Data
+sudo -u django_honeypot sqlite3 /opt/django_honeypot/db.sqlite3 ".schema admin_honeypot_loginattempt"  # Verify capture schema
+    > SELECT * FROM admin_honeypot_loginattempt;
+\end{lstlisting}  
+
+
+    \subsection{Command Output Obfuscation / fake cryptographic credentials}
 
 
 
