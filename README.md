@@ -1,13 +1,16 @@
-## Connect to EC2 VM:
+## Administrative Access:
 ```
-ssh -A -i "honeypot-instance.pem" ubuntu@ec2-16-170-217-174.eu-north-1.compute.amazonaws.com -p 2223
+ssh -A -i "cowrie-netsec.pem" ubuntu@13.48.42.241 -p 2223
 ```
-! The hostname part might rotate as EC2 starts up, check instance management
 
-
-## Visit AWS instance management:
-
-
-_https://eu-north-1.console.aws.amazon.com/ec2/home?region=eu-north-1#InstanceDetails:instanceId=i-05a6c1b82d37c3a52_
+## Access Honeypots:
+Cowrie SSH-Honeypot
+```
+ssh root@13.48.42.241 
+```
+Django HTTP-Honeypot
+```
+http://13.48.42.241/admin
+```
 
 ---
