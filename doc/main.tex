@@ -185,10 +185,10 @@
     Clear goal-setting, suitable interaction levels, reliable data collection, and risk mitigation are all highlighted in Spitzner's honeypot deployment framework (Ch.12). In order to study automated SSH-based attacks, in this section we concentrate on segregating legitimate SSH access with cryptographic controls and configuring a simple intrusion prevention system called \textit{fail2ban}. Ensuring that these techniques are in line with Spitzner's recommendations for safe and efficient honeypot operation.
         
         \subsection{Administrative Controlled Access}
-    Administrative SSH access is limited to key-based authentication on a non-standard port (e.g.: 2223) in accordance with Spitzner's advice to reduce risk through secure configurations (Ch.12). By removing password-based vulnerabilities, this reduces the attack surface and is consistent with the idea of protecting the underlying platform. The setup ensures strong isolation of authorized access by enforcing contemporary cryptographic standards to stop downgrade attacks. Find the complete configuration walk-through on \href{https://github.com/nottoBD/netsec-cowrie-honey}{our git repository}.        
+    Administrative SSH access is limited to key-based authentication on a non-standard port (e.g.: 61001) in accordance with Spitzner's advice to reduce risk through secure configurations (Ch.12). By removing password-based vulnerabilities, this reduces the attack surface and is consistent with the idea of protecting the underlying platform. The setup ensures strong isolation of authorized access by enforcing contemporary cryptographic standards to stop downgrade attacks. Find the complete configuration walk-through on \href{https://github.com/nottoBD/netsec-cowrie-honey}{our git repository}.        
         \begin{lstlisting}[language=bash,caption={Securing Legitimate Access}]
  # /etc/ssh/sshd_config
- Port 2223
+ Port 61001
  Protocol 2
  HostKeyAlgorithms ssh-ed25519,rsa-sha2-512
  KexAlgorithms curve25519-sha256
@@ -204,13 +204,13 @@
         \end{lstlisting}
         
         
-        \subsection{Fail2ban Configuration} To improve detection of unauthorized access attempts, Fail2Ban is set up to monitor key-based authentication failures on port 2223 and following Spitzner's assertion that detection is a central function of a honeypot (Ch.12), this configuration targets repeat public key failures, which can be facilitated through credential-stuffing attacks. Potentially malicious SSH connections will have fair, high-fidelity logging of attempts to authenticate via public keys. Given that the honeypot contains a deliberately misleading environment, the configuration will not interfere with coded logging and will be able to detect ongoing attacks. This configuration does not monitor any password attempts, as password-based administrative access has been disabled, to avoid receiving false positive logging data.
+        \subsection{Fail2ban Configuration} To improve detection of unauthorized access attempts, Fail2Ban is set up to monitor key-based authentication failures on port 61001 and following Spitzner's assertion that detection is a central function of a honeypot (Ch.12), this configuration targets repeat public key failures, which can be facilitated through credential-stuffing attacks. Potentially malicious SSH connections will have fair, high-fidelity logging of attempts to authenticate via public keys. Given that the honeypot contains a deliberately misleading environment, the configuration will not interfere with coded logging and will be able to detect ongoing attacks. This configuration does not monitor any password attempts, as password-based administrative access has been disabled, to avoid receiving false positive logging data.
         
         \begin{lstlisting}[language=bash,caption={Custom Jail Rules}]
  # /etc/fail2ban/jail.d/ssh-admin.conf
  [ssh-admin]
  enabled = true
- port = 2223
+ port = 61001
  filter = ssh-admin-netsec
  logpath = %(syslog_authpriv)s
  maxretry = 3
@@ -231,7 +231,7 @@ failregex = ^%(__prefix_line)sReceived disconnect from <HOST> port \d+: Too many
         
         
         \subsection{IPtables Redirection}
-        Using Spitzner's idea of port forwarding through Network Address Translation (NAT) (Ch.12), all traffic to the standard SSH port (22) is re-routed to the Cowrie honeypot on port 2222. This helps separate the malicious activity from the legitimate usage taking place on port 2223, and helps support Spitzner's idea of compartmentalization to separate the honeypot from the production systems and avoid any conflicts (Ch.12). Additionally, our group collaborators' IP addresses could be whitelisted for a much tighter defense. 
+        Using Spitzner's idea of port forwarding through Network Address Translation (NAT) (Ch.12), all traffic to the standard SSH port (22) is re-routed to the Cowrie honeypot on port 2222. This helps separate the malicious activity from the legitimate usage taking place on port 61001, and helps support Spitzner's idea of compartmentalization to separate the honeypot from the production systems and avoid any conflicts (Ch.12). Additionally, our group collaborators' IP addresses could be whitelisted for a much tighter defense. 
         
         The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: both processes avoid conflicting with each other as they can restart separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]

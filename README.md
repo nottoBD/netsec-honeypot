@@ -1,6 +1,6 @@
 ## Administrative Access:
 ```
-ssh -A -i "cowrie-netsec.pem" ubuntu@13.48.42.241 -p 2223
+ssh -A -i "cowrie-netsec.pem" ubuntu@13.48.42.241 -p 61001
 ```
 
 ## Access Honeypots:

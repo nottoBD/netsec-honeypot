@@ -35,8 +35,8 @@ keys) were redacted automatically before any LLM interaction, preventing potenti
 \
 \
 \begin{lstlisting}[language=bash, label={annexes:network}, caption={Network Isolation Verification}]  
-# Port 22 redirects to Cowrie (2222) and admin port (2223) is exclusive  
-sudo nmap -sV -Pn -p 22,2222,2223 13.48.42.241
+# Port 22 redirects to Cowrie (2222) and admin port (61001) is exclusive  
+sudo nmap -sV -Pn -p 22,2222,610001 13.48.42.241
 
 # Check iptables NAT rules for redirect
 sudo iptables -t nat -L PREROUTING -v -n  
@@ -46,7 +46,7 @@ sudo iptables -t nat -L PREROUTING -v -n
 
 \begin{lstlisting}[language=bash, label={annexes:fail2ban}, caption={Fail2ban Efficacy Testing}]  
 # Simulate brute-forcing administrative access 
-for i in {1..5}; do ssh -i ~/.ssh/wrong_key.pem ubuntu@13.48.42.241 -p 2223; done  
+for i in {1..5}; do ssh -i ~/.ssh/wrong_key.pem ubuntu@13.48.42.241 -p 61001; done  
 
 # Check active bans  
 sudo fail2ban-client status ssh-admin  
@@ -55,7 +55,7 @@ sudo fail2ban-client status ssh-admin
 
 \begin{figure}[h!]
 \centering
-    \includegraphics[width=0.7\linewidth]{doc/img/annex_b_listing_2.png}
+    \includegraphics[width=0.8\linewidth]{doc/img/annex_b_listing_2.png}
 \end{figure}
 
 \begin{lstlisting}[language=bash, label={annexes:ssh-hardening}, caption={SSH Service Hardening Validation}]  
@@ -64,8 +64,13 @@ sudo sshd -T | grep -E '^ciphers|^kexalgorithms|^macs|^hostkeyalgorithms'
 
 
 # 3. Confirm password authentication is disabled 
-ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@13.48.42.241 -p 2223  
-\end{lstlisting}  
+ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@13.48.42.241 -p 61001  
+\end{lstlisting}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{doc//img/annex_b_listing_3.png}
+\end{figure}
 \
 
 
