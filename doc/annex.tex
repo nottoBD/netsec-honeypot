@@ -8,13 +8,12 @@
 \
 \
 
-
+Large Language Models (LLMs) were strategically employed during the realization of this project, mainly as \emph{collaborative augmentation tools} rather than content generators. The following guidelines must be respected in order to keep control over a LLM work.
 \subsection*{Methodological Approach}
-Large Language Models (LLMs) were strategically employed during the realization of this project, mainly as \emph{collaborative augmentation tools} rather than content generators. The following guidelines are to be respected in order to keep control over LLMs for work.
 
---- \textbf{Verification-Centric Deployment}: LLMs' output is heavily dependent on its user's own comprehension, AI will not do more than instructed to, it will not \texttt{consciously} ask user a question, it will not compel you to do anything, but it is a decent corrector and will definitely be able to give suggestions that go in the right direction. All model outputs undergo cross-validation against credible and up-to-date sources such as; official documentation (Linux man pages, Git repository documentation, AWS Guides), academic literature (Spitzner's foundational honeypot frameworks, MS Cybersecurity courses), security best practices and standards. Not one technical implementation (e.g.: IAM policies, iptables rules, or authentication logic) were deployed before thorough validation and edge-case mitigation.
+--- \textbf{Verification-Centric Deployment}: LLMs output is heavily dependent on its user's own comprehension, AI will not do more than instructed to, it will not \texttt{consciously} ask user a question, it will not compel you to do anything, but it is a decent corrector and will definitely be able to give suggestions that go in the right direction. All model outputs undergo cross-validation against credible and up-to-date sources such as; official documentation (Linux man pages, git repository documentation, Cloud guides), academic literature (Spitzner's foundational honeypot frameworks, cybersecurity courses), security best practices and standards. Not one technical implementation (e.g.: IAM policies, iptables rules, or authentication logic) were deployed before thorough validation and edge-case mitigation.
 
---- \textbf{Controlled Application}: LLMs' interactions were constrained to: debugging assistance for Python scripting and \textit{systemd}-based Linux administration, technical documentation refinement (post-human draft), architectural brainstorming (especially in understanding distinct public Cloud providers' lingo for equivalent functionalities). Original research material or system designs created solely from LLMs output alone were absolutely forbidden and so was plagiarism. Finally, results of the research are human-produced only and the result of attack patterns that were indeed witnessed within our honeypot network.
+--- \textbf{Controlled Application}: LLMs interactions were constrained to: debugging assistance for Python scripting and \textit{systemd}-based Linux administration, technical documentation refinement (post-human draft), architectural brainstorming (especially in understanding distinct public Cloud providers' lingo for equivalent functionalities). Original research material or system designs created solely from LLMs output alone were absolutely forbidden and so was plagiarism. To conclude, results of this research are human-produced only or consequences of attack patterns that were witnessed within our honeypot network.
 
 \subsection*{Operational Safeguards}
 The implementation incorporated safeguards to preserve academic integrity:
@@ -23,9 +22,7 @@ The implementation incorporated safeguards to preserve academic integrity:
 keys) were redacted automatically before any LLM interaction, preventing potential data leakage through model training vectors.
 
 
---- \textbf{Bias Mitigation}: Model output to attacker behavior patterns was triangulated with
-honeypot telemetry data and peer-reviewed threat intelligence reports to counter potential algorithmic hallucinations. Model-derived hypotheses of attacker tactics (e.g., SSH bruteforce patterns were utilized solely as preliminary filters on our empirical honeypot data analysis.
-
+--- \textbf{Bias Mitigation}: From a model's output to the distinction of attackers' behavioral patterns, all information gathered during execution was triangulated with honeypot telemetry data and peer-reviewed between our group to counter potential algorithmic hallucinations. Model-derived hypotheses of attacker tactics were utilized solely as preliminary filters before our own analysis.
 
 \
 
@@ -33,45 +30,41 @@ honeypot telemetry data and peer-reviewed threat intelligence reports to counter
 
 \newpage
 
-\section{Annex: Validation for SSH Isolation \& Fail2ban Hardening}  
+\section{Annex: Validation for SSH Isolation \& Fail2ban Hardening} 
 \label{annex:network}
 \
 \
 \begin{lstlisting}[language=bash, label={annexes:network}, caption={Network Isolation Verification}]  
-# Verify port 22 redirects to Cowrie (2222) and admin port (2223) is exclusive  
-sudo nmap -sV -Pn -p 22,2222,2223 $EC2_PUBLIC_IP  
+# Port 22 redirects to Cowrie (2222) and admin port (2223) is exclusive  
+sudo nmap -sV -Pn -p 22,2222,2223 13.48.42.241
 
-# Check iptables NAT rules for redirect (should show 22 to 2222)  
+# Check iptables NAT rules for redirect
 sudo iptables -t nat -L PREROUTING -v -n  
-
-# Ensure no SSH service binds to port 22 (only Cowrie on 2222)  
-sudo ss -tulpn | grep -E ':22|:2222|:2223'  
 \end{lstlisting}  
 \
 
 
 \begin{lstlisting}[language=bash, label={annexes:fail2ban}, caption={Fail2ban Efficacy Testing}]  
-# Simulate key-based brute-forcing to trigger fail2ban  
-for i in {1..5}; do ssh -i ~/.ssh/wrong_key.pem ubuntu@localhost -p 2223; done  
+# Simulate brute-forcing administrative access 
+for i in {1..5}; do ssh -i ~/.ssh/wrong_key.pem ubuntu@13.48.42.241 -p 2223; done  
 
-# Verify fail2ban logged the bans (look for 'ssh-admin' jail)  
-sudo grep "ssh-admin" /var/log/fail2ban.log  
-
-# Check active bans (should list test IP)  
+# Check active bans  
 sudo fail2ban-client status ssh-admin  
 \end{lstlisting}  
 \
 
+\begin{figure}[h!]
+\centering
+    \includegraphics[width=0.7\linewidth]{doc/img/annex_b_listing_2.png}
+\end{figure}
 
 \begin{lstlisting}[language=bash, label={annexes:ssh-hardening}, caption={SSH Service Hardening Validation}]  
-# 1. Verify active SSH configuration matches hardening intent (no fallback to weak protocols)  
+# 1. SSH configuration resists downgrade attempts
 sudo sshd -T | grep -E '^ciphers|^kexalgorithms|^macs|^hostkeyalgorithms'  
 
-# 2. Test SSH service for protocol/cipher negotiation weaknesses  
-nmap -Pn -p 2223 --script ssh2-enum-algos $EC2_PUBLIC_IP | grep -A 10 "algorithm negotiation"  
 
-# 3. Confirm password authentication is globally disabled (even if bypass attempted)  
-ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@$EC2_PUBLIC_IP -p 2223  
+# 3. Confirm password authentication is disabled 
+ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@13.48.42.241 -p 2223  
 \end{lstlisting}  
 \
 
@@ -90,12 +83,12 @@ ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@$EC2_
 sudo iptables -t nat -L PREROUTING -nv | grep 'tcp dpt:22 redir ports 2222'  
 
 # Confirm no direct binding to port 22  
-sudo nmap -sV -Pn -p 22,2222 $EC2_IP | grep -E '22/tcp|2222/tcp'  
+sudo nmap -sV -Pn -p 22,2222 13.48.42.241 | grep -E '22/tcp|2222/tcp'  
 \end{lstlisting}  
 \
 \begin{lstlisting}[language=bash,label={lst:cowrie-access},caption={Honeypot Engagement Testing}]  
 # 2. Simulate attacker connection  
-ssh -o StrictHostKeyChecking=no invalid_user@$EC2_IP -p 22  
+ssh -o StrictHostKeyChecking=no invalid_user@13.48.42.241 -p 22  
 
 # Verify session capture in logs  
 sudo journalctl -u cowrie -f | grep 'SSH connection closed'  
