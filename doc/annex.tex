@@ -69,7 +69,7 @@ ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@13.48
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\linewidth]{doc//img/annex_b_listing_3.png}
+    \includegraphics[width=0.8\linewidth]{doc/img/annex_b_listing_3.png}
 \end{figure}
 \
 
@@ -95,14 +95,16 @@ sudo nmap -sV -Pn -p 22,2222 13.48.42.241 | grep -E '22/tcp|2222/tcp'
 # 2. Simulate attacker connection  
 ssh -o StrictHostKeyChecking=no invalid_user@13.48.42.241 -p 22  
 
-# Verify session capture in logs  
-sudo journalctl -u cowrie -f | grep 'SSH connection closed'  
+# Inspect Honeypot interactions in real time  
+sudo apt-get install ccze
+tail -f /home/cowrie/cowrie/var/log/cowrie/cowrie.log | ccze -A  
 \end{lstlisting}  
-\
-\begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Process Isolation Validation}]  
-# 3. Confirm execution context  
-ps -ef | grep cowrie | grep -v grep | awk '{print $1}' | uniq  
-\end{lstlisting}  
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{doc/img/annex_c_listing_2.png}
+    \caption*{Record of two intrusions in real time}
+\end{figure}
+
 \
 
 

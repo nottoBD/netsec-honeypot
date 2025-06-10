@@ -20,7 +20,7 @@
 % For colors  
 \usepackage{xcolor}
 \newcommand{\todo}[1]{\textcolor{red}{\textbf{TODO:} #1}}
-
+\usepackage{caption}
 % Configure abstract
 \renewenvironment{abstract}{%
   \clearpage
@@ -236,7 +236,7 @@ failregex = ^%(__prefix_line)sReceived disconnect from <HOST> port \d+: Too many
         The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: both processes avoid conflicting with each other as they can restart separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
 
- sudo apt install iptables-persistent netfilter-persistent
+ sudo apt-get install iptables-persistent netfilter-persistent
  sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo ip6tables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo netfilter-persistent save
@@ -369,32 +369,32 @@ SQLite3 database, collecting usernames, passwords, and attack times. The \textit
 value, logging IPs, user agents, and brute-force modes while differentiating attackers in transient transactions. The \textit{django\_honeypot} account's restricted permissions (\textit{-{-}system -{-}no-create-home}) ensure raw credentials never persist in memory or disk buffers. This implementation practices ethical honeypoting by avoiding credential reuse.
     
 \begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Ubuntu Setup of a Django Honeypot Webservice}]  
-# Dependency Installation
+# Dependency installation
 sudo apt-get install sqlite3
 
-# Secure User Isolation
+# User isolation
 sudo adduser --system --group --no-create-home django_honeypot
 sudo mkdir /opt/django_honeypot
 sudo chown django_honeypot:django_honeypot /opt/django_honeypot
 
-# Environment Compartmentalization
+# Environment compartmentalization
 sudo -u django_honeypot python3 -m venv /opt/django_honeypot/venv  # Dependency isolation
 sudo -u django_honeypot /opt/django_honeypot/venv/bin/pip install django django-admin-honeypot gunicorn
 
-# Project Initialization
+# Project initialization
 sudo -u django_honeypot /opt/django_honeypot/venv/bin/django-admin startproject honeypot_project /opt/django_honeypot
 
-# Service Integration
+# Service integration
 sudo ln -s /etc/nginx/sites-available/django_honeypot /etc/nginx/sites-enabled/ # Exposure
 sudo nginx -t && sudo systemctl reload nginx
 sudo systemctl start gunicorn
 sudo systemctl enable gunicorn
 
-# Attack Surface
+# Attack surface
 sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 sudo netfilter-persistent save
 
-# View Attack Data
+# Inspect intrusion data gathered
 sudo -u django_honeypot sqlite3 /opt/django_honeypot/db.sqlite3 ".schema admin_honeypot_loginattempt"  # Verify capture schema
   > SELECT * FROM admin_honeypot_loginattempt;
 \end{lstlisting}  
