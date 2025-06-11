@@ -1,16 +1,26 @@
-## Administrative Access:
+## Private Access 
+```-A extends GPG agent to the tunnel```
+
+```-i specifies privkey```
 ```
-ssh -A -i "cowrie-netsec.pem" ubuntu@13.48.42.241 -p 61001
+# -A to extend GPG agent
+ssh -A -i "cowrie-netsec.pem" ubuntu@16.171.78.147 -p 61001
 ```
 
-## Access Honeypots:
-Cowrie SSH-Honeypot
+---
+
+## Public Access
+SSH Honeypot
 ```
-ssh root@13.48.42.241 
+ssh root@16.171.78.147 
 ```
-Django HTTP-Honeypot
+Telnet Honeypot
 ```
-http://13.48.42.241/admin
+telnet 16.171.78.147
+```
+HTTP Honeypot
+```
+http://16.171.78.147/admin
 ```
 
 ---

@@ -49,7 +49,7 @@
 % Customization  bibliography
 \DeclareFieldFormat{url}{\url{#1}}
 \DeclareFieldFormat{note}{\textit{#1}}
-\addbibresource{refs/references.bib}
+
 
 
 % ========== Color Definitions ==========
@@ -76,6 +76,8 @@
         \node[anchor=north east] at (frame.north east) {\lstlistingname};
     }
 }
+
+\addbibresource{refs/references.bib}
 
 % ========== Listings Configuration ==========
 \lstset{
@@ -104,6 +106,9 @@
     belowcaptionskip=1em,     
 }
 
+\usepackage{hyperref}
+\usepackage{cleveref}
+
 \begin{document}
 
     \titleULB{
@@ -114,7 +119,7 @@
     	date={June 2025},
     	teacher={Pr. Jean-Michel Dricot\\ Navid Ladner},
     	logo={img/logo_vub_ulb.png},
-    	manyAuthor,
+    	manyAuthor
     }
     
     % Switch to Computer Modern AFTER title page
@@ -132,7 +137,7 @@
     %
     % ABSTRACT 
     \begin{abstract}        
-    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} public Cloud instance to capture attacker activity in real-world circumstances. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using an IPS, redirecting malicious traffic to \texttt{cowrie}, forging artifacts to track attacker activity and setting up a malicious web-service. A walkthrough of all configurations is covered in order to demonstrate a complete implementation with Linux, as this paper remains focused on the hands-on aspect of honeypot-based deception. However, cloud provider configurations (e.g., IAM, networking, key management) are not included as implementation-specific and beyond the scope of this paper. This project is based on the continuity of L. Spitzner's 2002 book \textit{Honeypots: Tracking Hackers}. Our public \texttt{git} repository is available at \href{https://github.com/nottoBD/netsec-cowrie-honey}{that location}.
+    This paper shows an operational deployment of the \texttt{SSH} honeypot using \texttt{cowrie} on an \textit{Ubuntu} public Cloud instance to capture attacker activity in real-world circumstances. The completion of this project was publicly tracked with a \texttt{git} repository available at address \href{https://github.com/nottoBD/cloud-honeypot/commits/master/}{https://github.com/nottoBD}. By exposing a knowingly open SSH port on the Internet and securing legitimate access with a cryptographic key on a different port, the study observes and inspects adversary tactics, techniques, and procedures (\textit{TTPs}). Key steps include isolating the honeypot space from production access using an IPS, redirecting malicious traffic to \texttt{cowrie}, forging artifacts to track attacker activity and setting up monitored web-service. A walkthrough of all configurations is covered in order to demonstrate a complete implementation with Linux, as this paper remains focused on the hands-on aspect of honeypot-based deception. However, cloud provider configurations (e.g., IAM, networking, key management) are not included as implementation-specific and beyond the scope of this paper. This project is based on the continuity of L. Spitzner's 2002 book \textit{Honeypots: Tracking Hackers}.
     \end{abstract}
     \newpage
     %
@@ -185,7 +190,7 @@
     Clear goal-setting, suitable interaction levels, reliable data collection, and risk mitigation are all highlighted in Spitzner's honeypot deployment framework (Ch.12). In order to study automated SSH-based attacks, in this section we concentrate on segregating legitimate SSH access with cryptographic controls and configuring a simple intrusion prevention system called \textit{fail2ban}. Ensuring that these techniques are in line with Spitzner's recommendations for safe and efficient honeypot operation.
         
         \subsection{Administrative Controlled Access}
-    Administrative SSH access is limited to key-based authentication on a non-standard port (e.g.: 61001) in accordance with Spitzner's advice to reduce risk through secure configurations (Ch.12). By removing password-based vulnerabilities, this reduces the attack surface and is consistent with the idea of protecting the underlying platform. The setup ensures strong isolation of authorized access by enforcing contemporary cryptographic standards to stop downgrade attacks. Find the complete configuration walk-through on \href{https://github.com/nottoBD/netsec-cowrie-honey}{our git repository}.        
+    Administrative SSH access is limited to key-based authentication on a non-standard port (e.g., 61001) in accordance with Spitzner's advice to reduce risk through secure configurations (Ch.12). By removing password-based vulnerabilities, this reduces the attack surface and is consistent with the idea of protecting the underlying platform. The setup ensures strong isolation of authorized access by enforcing contemporary cryptographic standards to stop downgrade attacks. Find the complete configuration walk-through on \href{https://github.com/nottoBD/netsec-cowrie-honey}{our git repository}.        
         \begin{lstlisting}[language=bash,caption={Securing Legitimate Access}]
  # /etc/ssh/sshd_config
  Port 61001
@@ -200,8 +205,7 @@
  LoginGraceTime 30s
  MaxAuthTries 2
  PubkeyAuthentication yes
- X11Forwarding no
-        \end{lstlisting}
+ X11Forwarding no\end{lstlisting}
         
         
         \subsection{Fail2ban Configuration} To improve detection of unauthorized access attempts, Fail2Ban is set up to monitor key-based authentication failures on port 61001 and following Spitzner's assertion that detection is a central function of a honeypot (Ch.12), this configuration targets repeat public key failures, which can be facilitated through credential-stuffing attacks. Potentially malicious SSH connections will have fair, high-fidelity logging of attempts to authenticate via public keys. Given that the honeypot contains a deliberately misleading environment, the configuration will not interfere with coded logging and will be able to detect ongoing attacks. This configuration does not monitor any password attempts, as password-based administrative access has been disabled, to avoid receiving false positive logging data.
@@ -216,8 +220,7 @@
  maxretry = 3
  findtime = 10m
  bantime = 30m
- banaction = nftables
-        \end{lstlisting}
+ banaction = nftables\end{lstlisting}
         
         \begin{lstlisting}[language=bash,caption={Regex Filter Against Key-Based Attacks}]
  # /etc/fail2ban/filter.d/ssh-admin-netsec.conf
@@ -226,8 +229,7 @@ before = common.conf
 
 [Definition]
 failregex = ^%(__prefix_line)sReceived disconnect from <HOST> port \d+: Too many authentication failures
-            ^%(__prefix_line)sDisconnected from <HOST> port \d+ due to: Authentication failed for .* publickey
-        \end{lstlisting}
+            ^%(__prefix_line)sDisconnected from <HOST> port \d+ due to: Authentication failed for .* publickey\end{lstlisting}
         
         
         \subsection{IPtables Redirection}
@@ -235,13 +237,11 @@ failregex = ^%(__prefix_line)sReceived disconnect from <HOST> port \d+: Too many
         
         The \texttt{sshd} to \texttt{cowrie} ({ports \textit{22}} $\rightarrow$ \textit{2222}) redirection is a security design with multiple benefits: both processes avoid conflicting with each other as they can restart separately, binding to high ports does not require root privileges, also, \texttt{fail2ban} needs an explicit target to be effective. Compartmentalization is a key principle for any deceptive operation, we also ensure an appropriate foundation for clean and comprehensive post-attack analysis.
         \begin{lstlisting}[language=bash,caption={Traffic Redirection to Cowrie}]
-
  sudo apt-get install iptables-persistent netfilter-persistent
  sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo ip6tables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
  sudo netfilter-persistent save
- sudo iptables -t nat -L -n -v
-        \end{lstlisting}
+ sudo iptables -t nat -L -n -v\end{lstlisting}
         
         %
         % %
@@ -271,8 +271,7 @@ sudo usermod -a -G sudo cowrie
 
 sudo touch /etc/authbind/byport/22
 sudo chown cowrie:cowrie /etc/authbind/byport/22
-sudo chmod 770 /etc/authbind/byport/22
-    \end{lstlisting}
+sudo chmod 770 /etc/authbind/byport/22\end{lstlisting}
 
     \subsection{Functional Configuration}
     The following commands compartmentalize Cowrie within a virtual environment and enforce port isolation. Find the latest Cowrie official documentation at \href{https://docs.cowrie.org/en/latest/INSTALL.html}{docs.cowrie.org}.
@@ -289,8 +288,7 @@ pip install --upgrade pip
 pip install --upgrade -r requirements.txt  
 
 # Configure listener port (2222) to align with iptables redirection (section 2.3)
-sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.cfg  
-    \end{lstlisting}
+sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.cfg\end{lstlisting}
 
 
 
@@ -318,22 +316,21 @@ As Spitzner points out with respect to the psychological effects of deception, \
 people. However, these concepts fail if those people are not paying attention} (Ch.4, p. 73), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived} (Ch.9, p. 197). This suggests that while deception-based honeypots can disrupt a human attacker by manipulating human cognitive biases, their usefulness against automated attacks is heavily dependent on detection and analysis; you need a balance of behavioral strategies for human adversaries and good technical defenses to capture and analyze automated threats. This section relates some interesting deceptive functionalities that Cowrie supports.
 
     \subsection{Forged Filesystem}
-Cowrie's filesystem trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence; each Cowrie session spawns a separate virtual filesystem where attackers can execute destructive commands (rm, chmod) or exfiltrate credentials. All operations reset post-session without further effect. In reality, no file is ever modified, Cowrie efficiently accomplishes this with metadata serialization, binary files with the \textit{.pickle} extension. These are generated out of a decoy filesystem, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} containing most system files in a read-only. This pickle binary can be browsed through and customized using the \textit{fsctl} toolkit. It is also possible to replace the default filesystem with a completely different one using \href{https://github.com/cowrie/cowrie/blob/main/docs/HONEYFS.rst}{honeyfs} and its \textit{createfs} command.
+Cowrie's file system trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence; each Cowrie session spawns a separate virtual file system where attackers can execute destructive commands (rm, chmod) or extract credentials. All operations reset post-session without further effect. In reality, no file is ever modified, Cowrie efficiently accomplishes this with metadata serialization, binary files with the \textit{.pickle} extension. These are generated out of a decoy file system, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} containing most system files in a read-only. This pickle binary can be browsed through and customized using the \textit{fsctl} toolkit. It is also possible to replace the default file system with a completely different one using \href{https://github.com/cowrie/cowrie/blob/main/docs/HONEYFS.rst}{honeyfs} and its \textit{createfs} command.
  \begin{lstlisting}[language=bash,caption={Deceptive Filesystem Manipulation}]
  # Print content of default pickle 
  python -c "import pickle; print(pickle.load(open('/home/cowrie/cowrie/data/fs.pickle','rb')))" 
  # Generate a pickle out of any directory of your choosing
  bin/createfs --location honeyfs/ --depth 6 --output custom.pickle  
  # Set custom.pickle in Cowrie config file 
- sed -i 's|^filesystem = .*|filesystem = ./custom.pickle|' /home/cowrie/cowrie/etc/cowrie.cfg
-    \end{lstlisting}
+ sed -i 's|^filesystem = .*|filesystem = ./custom.pickle|' /home/cowrie/cowrie/etc/cowrie.cfg\end{lstlisting}
 
-This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) that employed full disk imaging or physical partition cloning, in order to sandbox attacker activity which were excessively resource-consuming for both logistic and operational dimensions. Commercial offerings like Specter (Ch.7) and open-source standalones like Honeyd (Ch.8) were also facing similar issues; they either emulated small filesystem hierarchies or cloned entire disks. Such duplication at disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a filesystem's structure from physical storage, enabling realistic interaction without operational overhead.
+This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) that employed full disk imaging or physical partition cloning, in order to sandbox attacker activity which were excessively resource-consuming for both logistic and operational dimensions. Commercial offerings like Specter (Ch.7) and open-source standalones like Honeyd (Ch.8) were also facing similar issues; they either emulated small file system hierarchies or cloned entire disks. Such duplication at disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a file system's structure from physical storage, enabling realistic interaction without operational overhead.
 
 
     \subsection{Foothold for Persistency}
 
-Based on the forged filesystem outlined in previous section 4.1, Cowrie supports credential impersonation to increase attacker engagement. Cryptographic artifacts such as SSH keys are prime targets for attackers to attempt at maintaining long-term access to our system. Cowrie leads attackers into interacting with these objects by leaving fake credentials in decoy directories like \˜/.ssh/id\_rsa. The objective for us is to witness post-compromise methods leading to enemy persistency. Higher-order psychological biases are employed by this technique; opportunity bias: attackers are attracted to readily accessible credentials, confirmation bias: realistic file permissions and details support that effect, persistence anchoring: attackers invest time in what they perceive to be worthwhile resources for lateral movement. These decoy credentials are syntactically valid but operationally inert while Cowrie logs all keyboard input, exfiltration attempts and enemy TTPs. This arrangement offers insight into attacker behavior, particularly how attackers rank and exploit perceived vulnerabilities without risking legitimate systems. Cowrie implements this deception with filesystem tools like \textit{fsctl} to seamlessly integrate decoy credentials into the virtualized environment, along \textit{honeyfs}, enhancing the structure of the constructed filesystem. The result is an efficient, lightweight method to gather high-fidelity data on attacker persistence methods.
+Based on the forged file system outlined in previous section 4.1, Cowrie supports credential impersonation to increase attacker engagement. Cryptographic artifacts such as SSH key-pairs are prime targets for attackers to attempting to maintain long-term access to our system. Cowrie leads attackers into interacting with these objects by leaving fake virtual credentials in decoy directories like \˜/.ssh/id\_rsa. The objective for us is to witness post-compromise methods leading to threat persistency. Higher-order psychological biases are employed by this technique; opportunity bias: attackers are attracted to readily accessible credentials, confirmation bias: realistic file permissions and details support that effect, persistence anchoring: attackers invest time in what they perceive to be worthwhile resources for lateral movement. These decoy credentials are syntactically valid but operationally inert while Cowrie logs keyboard input, data extraction attempts and enemy TTPs in general. This arrangement offers insight into attacker behavior, particularly how attackers rank and exploit perceived vulnerabilities, without risking legitimate data loss nor defacement or disclosure. Cowrie comes packaged with the Python \textit{fsctl} file system tool to seamlessly integrate decoy credentials into the virtualized environment, alongside \textit{honeyfs}, both enhancing structure and correctness of the honeypot file system. The result is a lightweight method for gathering high-fidelity data on attacker persistence-holding methods. The next chapter is dedicated to their log analysis and post-attack insights.
 
 
 \begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Python Virtual Filesystem Controller}]  
@@ -345,8 +342,7 @@ fs.pickle:~$ cd /home/phil/.ssh
 fs.pickle:/home/phil/.ssh$ touch id_rsa 
 # Added '/home/phil/.ssh/id_rsa'
 fs.pickle:/home/phil/.ssh$ touch id_rsa.pub 
-# Added '/home/phil/.ssh/id_rsa.pub'
-\end{lstlisting}  
+# Added '/home/phil/.ssh/id_rsa.pub'\end{lstlisting}  
 
 
     \subsection{Decoy Web Service}
@@ -384,13 +380,29 @@ sudo netfilter-persistent save
 
 # Inspect intrusion data gathered
 sudo -u django_honeypot sqlite3 /opt/django_honeypot/db.sqlite3 ".schema admin_honeypot_loginattempt"  # Verify capture schema
-  > SELECT * FROM admin_honeypot_loginattempt;
-\end{lstlisting}  
+  > SELECT * FROM admin_honeypot_loginattempt;\end{lstlisting}  
 
 
-\section{Analysis: Attack Pattern \& TTPs}
+\section{Research Findings \& Attack Profiling}
+ 
+Early deployment revealed a serious anomaly: the AWS eu-north-1 honeypot received insignificant attack traffic (<5 unique IPs) over 72 hours of uninterrupted operation. Further retrospection suggests that some other dynamics influence attacker behaviors or restrict our visibility on the web. Several reasons would be responsible for this difference: One, the example is based in a geographically subdued location where Amazon security defenses (e.g., Shield Advanced, VPC flow analytics) would proactively block known malicious IP, yielding negative ROI for botnets for whose attack costs exceeded potential harvest. Two, DNS targeting limits, having no domain associated, our IP-only instance is beyond attacker reconnaissance pipelines aimed at enumerated targets. Third, our system had no prior service history footprint to hype up its visibility in adversarial scanning databases (like Shodan or Censys). The region's lower concentration of old systems makes it less attractive for distributed scanning operations in search of target-rich environments. Botnets responsible for SSH server scraping universally avoid heavily monitored cloud segments where risks outrun potential reward. 
 
-\subsection{Credential Exploitation Patterns}
+
+
+
+\subsection{Corrective Measures}
+
+\enquote{A Honeynet consisting of default installations of systems and little or no activity is a sterile
+environment. Such an environment is excellent at capturing automated activity or attackers
+focusing on targets of opportunity. However, such a sterile environment has little value to
+advanced blackhats, individuals who concentrate on targets of choice, high-value systems.
+For such attackers, one must sweeten the pot.} \autocite[Ch.~11, p.~259]{spitzner2002honeypots}
+
+The observed absence of attacks in AWS eu-north-1 underscores a critical limitation in contemporary honeypot deployment: strategic placement outweighs technical configuration. While our implementation rigorously applied Spitzner’s architectural principles, it could not overcome the inherent environmental sterility of a low-noise and well shielded cloud region. To solve this, we transition our infrastructure to a higher-friction zone, switching to OVH SoyouStart in Paris. This low-cost provider supplies unmonitored VPS in target-rich IP blocks with rather legacy equipments which consistently rank at the top of scan lists. Furthermore, OVH specifically authorizes the setup of a honeypot in its ToS (for research purposes, as long as there is no entrapment) and allows maximizing probe captures by disabling all firewalls. By retaining our same configurations and deception mechanisms but switching for a lower hanging fruit, we expect attackers to follow the path of least resistance and to be incited in paying our honeypot a visit, although our main priority remains data collection for attack profiling over total unique connections. 
+
+
+
+\subsection{Credential Exploitation Patterns (RQ1)}
     % Top 10 username/password pairs from brute-force attacks
 
     % Comparison to Spitzner's 2002 findings (e.g., root:admin persistence)
@@ -398,12 +410,12 @@ sudo -u django_honeypot sqlite3 /opt/django_honeypot/db.sqlite3 ".schema admin_h
     % Novel patterns: Cloud IAM roles, container-related usernames
 
 
-\subsection{Persistence Mechanism}
+\subsection{Persistence Mechanism Analysis}
 
 % Case study: Attacker workflow from compromise to C2 setup
 
 
-\subsection{Decoy Efficacy Validation}
+\subsection{Decoy Efficacy Metrics}
 
 
     

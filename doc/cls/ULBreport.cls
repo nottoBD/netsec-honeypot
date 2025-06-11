@@ -9,10 +9,11 @@
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[T1]{fontenc}
 %Language
-\RequirePackage{csquotes}
+% \RequirePackage{csquotes}
+\RequirePackage[hyperref]{csquotes} % Fixes hyperlink issue with citations
 \RequirePackage[english]{babel}
-\RequirePackage[backend=biber,citestyle=alphabetic,bibstyle=authoryear]{biblatex}
-
+% \RequirePackage[backend=biber,citestyle=alphabetic,bibstyle=authoryear]{biblatex}
+\RequirePackage[backend=biber, style=alphabetic]{biblatex}
 
 \RequirePackage{tabularx}
 \RequirePackage[top=2cm,bottom=2cm,left=2cm,right=2cm]{geometry}

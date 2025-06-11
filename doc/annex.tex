@@ -36,7 +36,7 @@ keys) were redacted automatically before any LLM interaction, preventing potenti
 \
 \begin{lstlisting}[language=bash, label={annexes:network}, caption={Network Isolation Verification}]  
 # Port 22 redirects to Cowrie (2222) and admin port (61001) is exclusive  
-sudo nmap -sV -Pn -p 22,2222,610001 13.48.42.241
+sudo nmap -sV -Pn -p 22,2222,610001 16.171.78.147
 
 # Check iptables NAT rules for redirect
 sudo iptables -t nat -L PREROUTING -v -n  
@@ -46,7 +46,7 @@ sudo iptables -t nat -L PREROUTING -v -n
 
 \begin{lstlisting}[language=bash, label={annexes:fail2ban}, caption={Fail2ban Efficacy Testing}]  
 # Simulate brute-forcing administrative access 
-for i in {1..5}; do ssh -i ~/.ssh/wrong_key.pem ubuntu@13.48.42.241 -p 61001; done  
+for i in {1..5}; do ssh -i ~/.ssh/wrong_key.pem ubuntu@16.171.78.147 -p 61001; done  
 
 # Check active bans  
 sudo fail2ban-client status ssh-admin  
@@ -64,7 +64,7 @@ sudo sshd -T | grep -E '^ciphers|^kexalgorithms|^macs|^hostkeyalgorithms'
 
 
 # 3. Confirm password authentication is disabled 
-ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@13.48.42.241 -p 61001  
+ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@16.171.78.147 -p 61001  
 \end{lstlisting}
 
 \begin{figure}[h!]
@@ -88,16 +88,16 @@ ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ubuntu@13.48
 sudo iptables -t nat -L PREROUTING -nv | grep 'tcp dpt:22 redir ports 2222'  
 
 # Confirm no direct binding to port 22  
-sudo nmap -sV -Pn -p 22,2222 13.48.42.241 | grep -E '22/tcp|2222/tcp'  
+sudo nmap -sV -Pn -p 22,2222 16.171.78.147 | grep -E '22/tcp|2222/tcp'  
 \end{lstlisting}  
 \
 \begin{lstlisting}[language=bash,label={lst:cowrie-access},caption={Honeypot Engagement Testing}]  
 # 2. Simulate attacker connection  
-ssh -o StrictHostKeyChecking=no invalid_user@13.48.42.241 -p 22  
+ssh -o StrictHostKeyChecking=no invalid_user@16.171.78.147 -p 22  
 
 # Inspect Honeypot interactions in real time  
 sudo apt-get install ccze
-tail -f /home/cowrie/cowrie/var/log/cowrie/cowrie.log | ccze -A  
+sudo tail -f /home/cowrie/cowrie/var/log/cowrie/cowrie.log | ccze -A  
 \end{lstlisting}  
 \begin{figure}[h!]
     \centering
@@ -109,6 +109,17 @@ tail -f /home/cowrie/cowrie/var/log/cowrie/cowrie.log | ccze -A
 
 
 
+\newpage
+
+\section{Annex: Provoke }  
+\label{annex:intel-gathering}  
+\
+\
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{doc//img/annex_d.png}
+\end{figure}
+\
 
 
 % END
