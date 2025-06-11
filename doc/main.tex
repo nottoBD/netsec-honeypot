@@ -258,7 +258,7 @@ failregex = ^%(__prefix_line)sReceived disconnect from <HOST> port \d+: Too many
 
     \section{Cowrie Honeypot Setup}
     Honeypots differ by level of interaction: low-interaction emulates the minimal service much of the time to detect attackers; medium-interaction such as Cowrie employ a controlled environment withstanding an attacker's impact; high-interaction (like Honeynets) provides access to fully functioning Operating Systems allowing as much dynamic information gathering as possible.
-    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots} (Ch.9). Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to log specific attacker behavior. The deployment of a medium-interaction Cowrie Honeypot is described here for a Ubuntu 24 virtual machine.
+    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots} (Ch.9). Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to log specific attacker behavior. The deployment of a medium-interaction Cowrie Honeypot is described here for a Ubuntu 24 virtual machine. Find the latest Cowrie official documentation at \href{https://docs.cowrie.org/en/latest/INSTALL.html}{docs.cowrie.org}.
     
 \label{sec:cowrie}
     \subsection{System Requirements}
@@ -274,21 +274,24 @@ sudo chown cowrie:cowrie /etc/authbind/byport/22
 sudo chmod 770 /etc/authbind/byport/22\end{lstlisting}
 
     \subsection{Functional Configuration}
-    The following commands compartmentalize Cowrie within a virtual environment and enforce port isolation. Find the latest Cowrie official documentation at \href{https://docs.cowrie.org/en/latest/INSTALL.html}{docs.cowrie.org}.
+    The following commands compartmentalize Cowrie within a virtual environment and enforce port isolation. After applying all the configurations leading to Ch.4 you will have to reboot your system for them to be effective.
     \begin{lstlisting}[language=bash,caption={Cowrie Honeypot Setup}]
 # Operate as cowrie user
 sudo su - cowrie  
 git clone https://github.com/cowrie/cowrie  
-cd cowrie  
+cd cowrie ; cp etc/cowrie.cfg.dist etc/cowrie.cfg 
 
 # Isolate dependencies using Python venv
 python3 -m venv cowrie-env  
 source cowrie-env/bin/activate  
 pip install --upgrade pip
-pip install --upgrade -r requirements.txt  
+pip install --use-pep517 -r requirements.txt
+
 
 # Configure listener port (2222) to align with iptables redirection (section 2.3)
-sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.cfg\end{lstlisting}
+sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.cfg
+
+./bin/cowrie start\end{lstlisting}
 
 
 
@@ -354,7 +357,7 @@ SQLite3 database, collecting usernames, passwords, and attack times. The \textit
     
 \begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Setup of a Django Honeypot Webservice}]  
 # Dependency installation
-sudo apt-get install sqlite3
+sudo apt-get install sqlite3 nginx
 
 # User isolation
 sudo adduser --system --group --no-create-home django_honeypot
@@ -385,7 +388,7 @@ sudo -u django_honeypot sqlite3 /opt/django_honeypot/db.sqlite3 ".schema admin_h
 
 \section{Research Findings \& Attack Profiling}
  
-Early deployment revealed a serious anomaly: the AWS eu-north-1 honeypot received insignificant attack traffic (<5 unique IPs) over 72 hours of uninterrupted operation. Further retrospection suggests that some other dynamics influence attacker behaviors or restrict our visibility on the web. Several reasons would be responsible for this difference: One, the example is based in a geographically subdued location where Amazon security defenses (e.g., Shield Advanced, VPC flow analytics) would proactively block known malicious IP, yielding negative ROI for botnets for whose attack costs exceeded potential harvest. Two, DNS targeting limits, having no domain associated, our IP-only instance is beyond attacker reconnaissance pipelines aimed at enumerated targets. Third, our system had no prior service history footprint to hype up its visibility in adversarial scanning databases (like Shodan or Censys). The region's lower concentration of old systems makes it less attractive for distributed scanning operations in search of target-rich environments. Botnets responsible for SSH server scraping universally avoid heavily monitored cloud segments where risks outrun potential reward. 
+Early deployment revealed a serious anomaly: the AWS eu-north-1 honeypot received insignificant attack traffic (<5 unique IPs) over 72 hours of uninterrupted operation. Further retrospection suggests that some other dynamics influence attacker behaviors or restrict our visibility on the Web. Several reasons are responsible for this difference: One, the example is based on a geographically subdued location where Amazon security defenses (e.g., Shield Advanced, VPC flow analytics) would proactively block known malicious IP, yielding negative ROI for botnets for whose attack costs exceeded potential harvest. Two, DNS targeting limits, having no domain associated, our IP-only instance is beyond attacker reconnaissance pipelines aimed at enumerated targets. Third, our system had no prior service history footprint to hype up its visibility in adversarial scanning databases (like Shodan or Censys). The region's lower concentration of old systems makes it less attractive for distributed scanning operations in search of target-rich environments. Botnets responsible for SSH server scraping might also avoid heavily monitored cloud segments, where risks outweigh potential reward. 
 
 
 
@@ -398,7 +401,7 @@ focusing on targets of opportunity. However, such a sterile environment has litt
 advanced blackhats, individuals who concentrate on targets of choice, high-value systems.
 For such attackers, one must sweeten the pot.} \autocite[Ch.~11, p.~259]{spitzner2002honeypots}
 
-The observed absence of attacks in AWS eu-north-1 underscores a critical limitation in contemporary honeypot deployment: strategic placement outweighs technical configuration. While our implementation rigorously applied Spitzner’s architectural principles, it could not overcome the inherent environmental sterility of a low-noise and well shielded cloud region. To solve this, we transition our infrastructure to a higher-friction zone, switching to OVH SoyouStart in Paris. This low-cost provider supplies unmonitored VPS in target-rich IP blocks with rather legacy equipments which consistently rank at the top of scan lists. Furthermore, OVH specifically authorizes the setup of a honeypot in its ToS (for research purposes, as long as there is no entrapment) and allows maximizing probe captures by disabling all firewalls. By retaining our same configurations and deception mechanisms but switching for a lower hanging fruit, we expect attackers to follow the path of least resistance and to be incited in paying our honeypot a visit, although our main priority remains data collection for attack profiling over total unique connections. 
+The observed absence of attacks in AWS eu-north-1 underscores a critical limitation in contemporary honeypot deployment: strategic placement outweighs technical configuration. Although our implementation rigorously applied Spitzner’s architectural principles, it could not overcome the inherent environmental sterility of a well-protected and low-noise cloud region. To solve this, we transition our infrastructure to a higher-friction zone, switching to OVH VPS in eastern Asia. This low-cost provider provides unmonitored VPS in target-rich IP blocks with rather busy infrastructures that consistently rank at the top of the scan lists. Furthermore, OVH specifically authorizes the setup of a honeypot in its ToS (for research purposes, as long as there is no entrapment) and is generally more permissive regarding probe captures than Amazon. By retaining our same configurations and deception mechanisms but switching for a lower hanging fruit, we expect attackers to follow the path of least resistance and to be incited in paying our honeypot a visit, although our main priority remains data collection for attack profiling over total unique connections. 
 
 
 
@@ -410,12 +413,12 @@ The observed absence of attacks in AWS eu-north-1 underscores a critical limitat
     % Novel patterns: Cloud IAM roles, container-related usernames
 
 
-\subsection{Persistence Mechanism Analysis}
+\subsection{Persistence Mechanism Analysis (RQ2)}
 
 % Case study: Attacker workflow from compromise to C2 setup
 
 
-\subsection{Decoy Efficacy Metrics}
+\subsection{Decoy Efficacy Metrics (RQ3)}
 
 
     
@@ -438,7 +441,7 @@ The observed absence of attacks in AWS eu-north-1 underscores a critical limitat
     
     %Bibliography
     \nocite{*}
-    \printbibliography[type=article,title=Articles]
+    \printbibliography[type=book,title=Book]
 
 
 
