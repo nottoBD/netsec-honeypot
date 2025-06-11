@@ -1,0 +1,15 @@
+[Unit]
+Description=Cowrie Honeypot Service
+After=network.target
+
+[Service]
+Type=forking
+User=cowrie
+WorkingDirectory=/home/cowrie
+ExecStart=/bin/bash -c 'source /home/cowrie/cowrie/cowrie-env/bin/activate && /home/cowrie/cowrie/bin/cowrie start'
+ExecStop=/bin/bash -c 'source /home/cowrie/cowrie/cowrie-env/bin/activate && /home/cowrie/cowrie/bin/cowrie stop'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+

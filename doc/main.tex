@@ -315,10 +315,10 @@ sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.c
     \section{Maximizing Engagement with Deception}
 
 As Spitzner points out with respect to the psychological effects of deception, \enquote{Deception and deterrence are designed as psychological weapons to confuse
-people. However, these concepts fail if those people are not paying attention} (Ch.4, p. 73), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived} (Ch.9, p. 197). This suggests that while deception-based honeypots can disrupt a human attacker by manipulating human cognitive biases, their usefulness against automated attacks is heavily dependent on detection and analysis; you need a balance of behavioral strategies for human adversaries and good technical defenses to capture and analyze automated threats. This section relates some interesting deceptive functionalities Cowrie supports.
+people. However, these concepts fail if those people are not paying attention} (Ch.4, p. 73), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived} (Ch.9, p. 197). This suggests that while deception-based honeypots can disrupt a human attacker by manipulating human cognitive biases, their usefulness against automated attacks is heavily dependent on detection and analysis; you need a balance of behavioral strategies for human adversaries and good technical defenses to capture and analyze automated threats. This section relates some interesting deceptive functionalities that Cowrie supports.
 
     \subsection{Forged Filesystem}
-Cowrie's filesystem trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence, each Cowrie session spawns a separate virtual filesystem where attackers can execute destructive commands (rm, chmod) or exfiltrate credentials. All operations reset post-session without further effect. In reality, no file is ever modified, Cowrie efficiently accomplishes this with metadata serialization, binary files with the \textit{.pickle} extension. These are generated out of a decoy filesystem, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} containing most system files in a read-only. This pickle binary can be browsed through and customized using the \textit{fsctl} toolkit. It is also possible to replace the default filesystem with a completely different one using \href{https://github.com/cowrie/cowrie/blob/main/docs/HONEYFS.rst}{honeyfs} and its \textit{createfs} command.
+Cowrie's filesystem trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence; each Cowrie session spawns a separate virtual filesystem where attackers can execute destructive commands (rm, chmod) or exfiltrate credentials. All operations reset post-session without further effect. In reality, no file is ever modified, Cowrie efficiently accomplishes this with metadata serialization, binary files with the \textit{.pickle} extension. These are generated out of a decoy filesystem, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} containing most system files in a read-only. This pickle binary can be browsed through and customized using the \textit{fsctl} toolkit. It is also possible to replace the default filesystem with a completely different one using \href{https://github.com/cowrie/cowrie/blob/main/docs/HONEYFS.rst}{honeyfs} and its \textit{createfs} command.
  \begin{lstlisting}[language=bash,caption={Deceptive Filesystem Manipulation}]
  # Print content of default pickle 
  python -c "import pickle; print(pickle.load(open('/home/cowrie/cowrie/data/fs.pickle','rb')))" 
@@ -328,47 +328,35 @@ Cowrie's filesystem trickery is specifically focusing on exploiting cognitive en
  sed -i 's|^filesystem = .*|filesystem = ./custom.pickle|' /home/cowrie/cowrie/etc/cowrie.cfg
     \end{lstlisting}
 
-This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) that employed full disk imaging or physical partition cloning in order to sandbox attacker activity. Which were excessively resource consuming for both logistic and operational dimensions. Commercial offerings like Specter (Ch.7) and open-source standalone like Honeyd (Ch.8) were also facing similar issues; they either emulated small filesystem hierarchies or cloned entire disks. Such duplication at disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a filesystem's structure from physical storage, enabling realistic interaction without operational overhead.
+This minimal isolation contrasts with legacy systems like ManTrap (Ch.10) that employed full disk imaging or physical partition cloning, in order to sandbox attacker activity which were excessively resource-consuming for both logistic and operational dimensions. Commercial offerings like Specter (Ch.7) and open-source standalones like Honeyd (Ch.8) were also facing similar issues; they either emulated small filesystem hierarchies or cloned entire disks. Such duplication at disk level made scaling concurrent sessions impossible, as each consumed gigabytes of storage. Cowrie's temporary, metadata-driven solution elegantly sidesteps these trade-offs by decoupling a filesystem's structure from physical storage, enabling realistic interaction without operational overhead.
 
 
-    \subsection{Fabricated Cryptographic Credentials}
-\begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={TBD}]  
+    \subsection{Foothold for Persistency}
 
+Based on the forged filesystem outlined in previous section 4.1, Cowrie supports credential impersonation to increase attacker engagement. Cryptographic artifacts such as SSH keys are prime targets for attackers to attempt at maintaining long-term access to our system. Cowrie leads attackers into interacting with these objects by leaving fake credentials in decoy directories like \˜/.ssh/id\_rsa. The objective for us is to witness post-compromise methods leading to enemy persistency. Higher-order psychological biases are employed by this technique; opportunity bias: attackers are attracted to readily accessible credentials, confirmation bias: realistic file permissions and details support that effect, persistence anchoring: attackers invest time in what they perceive to be worthwhile resources for lateral movement. These decoy credentials are syntactically valid but operationally inert while Cowrie logs all keyboard input, exfiltration attempts and enemy TTPs. This arrangement offers insight into attacker behavior, particularly how attackers rank and exploit perceived vulnerabilities without risking legitimate systems. Cowrie implements this deception with filesystem tools like \textit{fsctl} to seamlessly integrate decoy credentials into the virtualized environment, along \textit{honeyfs}, enhancing the structure of the constructed filesystem. The result is an efficient, lightweight method to gather high-fidelity data on attacker persistence methods.
+
+
+\begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Python Virtual Filesystem Controller}]  
+sudo su - cowrie
+source ~/cowrie/cowrie-env/bin/activate
 
 ~/cowrie/bin/fsctl ~/cowrie/src/cowrie/data/fs.pickle
-
-fs.pickle:/home/phil/.ssh$ chmod 700 .ssh
-File '/home/phil/.ssh/.ssh' doesn`t exist.
-fs.pickle:/home/phil/.ssh$ cd ..
-fs.pickle:/home/phil$ chown 1000 .ssh
-former UID: 1000. New UID: 1000
-fs.pickle:/home/phil$ chgrp 1000 .ssh
-former GID: 1000. New GID: 1000
-fs.pickle:/home/phil$ chmod 700 .ssh
-fs.pickle:/home/phil$ cd .ssh
-fs.pickle:/home/phil/.ssh$ touch id_rsa
-Added '/home/phil/.ssh/id_rsa'
-fs.pickle:/home/phil/.ssh$ file id_rsa
-/home/phil/.ssh/id_rsa is a normal file object
-fs.pickle:/home/phil/.ssh$ size=2602
-*** Unknown syntax: size=2602
-fs.pickle:/home/phil/.ssh$ size=2602
-*** Unknown syntax: size=2602
-fs.pickle:/home/phil/.ssh$
-fs.pickle:/home/phil/.ssh$ file id_rsa
-/home/phil/.ssh/id_rsa is a normal file object
+fs.pickle:~$ cd /home/phil/.ssh
+fs.pickle:/home/phil/.ssh$ touch id_rsa 
+# Added '/home/phil/.ssh/id_rsa'
+fs.pickle:/home/phil/.ssh$ touch id_rsa.pub 
+# Added '/home/phil/.ssh/id_rsa.pub'
 \end{lstlisting}  
 
 
-    \subsection{Malicious Web Service}
+    \subsection{Decoy Web Service}
     
-Web application interfaces are valuable attack targets, particularly administrative portals where credential compromise yields significant operational advantages. This psychological vulnerability is targeted by the piece of software \href{https://github.com/dmpayton/django-admin-honeypot}{django-admin-honeypot}, which presents a carefully crafted illusion of privileged access. This web deployment extends Cowrie's deceptions principles to the web layer through the use of Nginx reverse proxying and Gunicorn to appear as an operational Django backend administrative interface. This tactic of deception leverages cognitive bias in target selection, so that the attackers target seemingly misconfigured admin panels. While automated scanners might miss the session anomalies in HTTP redirects, manual attackers scanning for Django vulnerabilities receive deliberate behavioral hints such as bad credentials inducing genuine error feedback, and session cookies mirroring Django security headers. Running on a common port HTTP 80, this deployment is publicly available in parallel of the Cowrie SSH honeypot. 
+Web application interfaces are valuable attack targets, particularly administrative portals, where credential compromise yields significant operational advantages. This psychological vulnerability is targeted by the piece of software \href{https://github.com/dmpayton/django-admin-honeypot}{django-admin-honeypot}, which presents a carefully crafted illusion of privileged access. This web deployment extends Cowrie's deceptions principles to the web layer through the use of Nginx reverse proxying and Gunicorn to appear as an operational Django backend administrative interface. This tactic of deception leverages cognitive bias in target selection, so that the attackers target seemingly misconfigured admin panels. Although automated scanners might miss session anomalies in HTTP redirects, manual attackers scanning for Django vulnerabilities receive deliberate behavioral hints such as bad credentials inducing genuine error, feedback, and session cookies mirroring Django security headers. Running on a common port HTTP 80, this deployment is publicly available in parallel of the Cowrie SSH honeypot. 
 
-Its capabilities focus on Credential Capture; Login attempts are channeled towards a
-SQLite3 database, collecting usernames, passwords, and attack times. The \textit{admin\_honeypot\_loginattempt} schema is made available to hold forensic
-value, logging IPs, user agents, and brute-force modes while differentiating attackers in transient transactions. The \textit{django\_honeypot} account's restricted permissions (\textit{-{-}system -{-}no-create-home}) ensure raw credentials never persist in memory or disk buffers. This implementation practices ethical honeypoting by avoiding credential reuse.
+Its capabilities focus on credential capture; Login attempts are channeled towards a
+SQLite3 database, collecting usernames, passwords, and attack times. The \textit{admin\_honeypot\_loginattempt} schema is made available to hold forensic value, logging IPs and user agents while differentiating attackers in transient transactions. The \textit{django\_honeypot} account's restricted permissions (\textit{-{-}system -{-}no-create-home}) ensure raw credentials never persist in memory or disk buffers. This implementation practices ethical honeypot by avoiding the reuse of credentials.
     
-\begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Ubuntu Setup of a Django Honeypot Webservice}]  
+\begin{lstlisting}[language=bash,label={lst:cowrie-context},caption={Setup of a Django Honeypot Webservice}]  
 # Dependency installation
 sudo apt-get install sqlite3
 
