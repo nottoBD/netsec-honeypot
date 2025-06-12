@@ -51,7 +51,6 @@
 \DeclareFieldFormat{note}{\textit{#1}}
 
 
-
 % ========== Color Definitions ==========
 \definecolor{background}{HTML}{FFFFFF}    % Pure white background
 \definecolor{keyword}{HTML}{0000FF}       % Vivid blue for keywords
@@ -149,17 +148,17 @@
     \section{Introduction}
 
     Lance Spitzner, a seminal researcher and Senior Instructor for SANS Cybersecurity Leadership, established foundational principles in his 2002 book \textit{Honeypots: Tracking Hackers}. 
-    Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{being probed, attacked, or compromised} (p. 23). Our Cowrie implementation on public cloud positions itself onto that continuity, demonstrating that Spitzner's \enquote{gaining value from data} challenge (Ch.4) persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, such as legal liability (Ch.15) or signature-based detection tools tipping off hackers about the underlying nature of our operation; \enquote{a system designed to be attacked} (p. 298). 
+    Despite its age, Spitzner's core thesis retains striking relevance in modern threat intelligence; Honeypots derive value from \enquote{\textit{being probed, attacked, or compromised}}\autocite[Ch.~1, p.~23]{spitzner2002honeypots}. Our Cowrie implementation on public cloud positions itself onto that continuity, demonstrating that Spitzner's \enquote{\textit{gaining value from data}} challenge \autocite[Ch.~4, p.~67]{spitzner2002honeypots} persists against contemporary attacks. In addition, the attacker behaviors documented in 2002 remain prevalent even today. Furthermore, Spitzner's risk mitigation framework (Ch.12) comprises a wide set of obstacles one encounters when building such deceptive system, from legal liabilities (Ch.15) to detection tools tipping off hackers about the underlying nature of our operation; \enquote{\textit{a system designed to be attacked}}\autocite[Ch.~12, p.~298]{spitzner2002honeypots}. 
     
     
-    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access. This proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-Internet SSH traffic to the honeypot and restriction of legitimate access with cryptographic means, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots \enquote{collect small amounts of [..] high-value data} (Ch.4, p. 68) without production noise.  
+    With more advanced automated \texttt{SSH}-based attacks, empirical analysis of attacker processes has been crucial in strengthening defenses. By mimicking realistic infrastructure while isolating malicious activity from legitimate administrative access. This proof of concept applies Spitzner's principles of honeypot deployment, specifically leveraging \texttt{medium-interaction design} (Ch.5) to find the correct trade-off between risk containment and attacker engagement. Through silent redirection of open-to-Internet SSH traffic to the honeypot and restriction of legitimate access with cryptographic means, the study allows the monitoring of attacker activities in fine granularity without compromising the security of systems, proving Spitzner's assertion that honeypots \enquote{\textit{collect small amounts of [..] high-value data}} \autocite[Ch.~4, p.~68]{spitzner2002honeypots} without production noise.  
 
         %
         % subsection PROBLEM STATEMENT
         \subsection{Problem Statement} 
         Public \texttt{SSH} services are some of the most frequent targets of credential stuffing and post-compromise persistence attacks (e.g.,\texttt{SSH} key injection, cronjob exploitation). Conventional defenses measures lack visibility of attacker's \texttt{TTPs} (Techniques, Tactics \& Procedures). A gap Spitzner attributes to their inability to naturally distinguish between legitimate and hostile activity (Ch.4). This research addresses three significant challenges: 
             
-            - \texttt{Safe isolation of production access}: Mitigating Spitzner’s identified risk of collateral system compromise through architectural \enquote{separation of honeypot lures from administrative channels} (Ch.3, 12).
+            - \texttt{Safe isolation of production access}: Mitigating Spitzner’s identified risk of collateral system compromise through architectural separation of honeypot lures from administrative channels.
 
             - \texttt{Deception efficacy for engagement}: Designing credible system emulations (e.g., service banners, file structures, false credentials) to prolong attacker interaction and avoid detection as a honeypot.
 
@@ -173,11 +172,14 @@
         \subsection{Research Questions}
         In order to learn about attacker motives and organization through research honeypots, this study investigates:
 
-            - \texttt{Credential exploitation patterns}: Which username/password pairs dominate automated brute-force campaigns against internet-exposed SSH? (Extending Spitzner’s analysis of \enquote{targets of opportunity} and scripted tools in Ch.4). 
+            - \texttt{Credential exploitation patterns}: Which username/password pairs dominate automated brute-force campaigns against internet-exposed SSH? (Extending Spitzner’s analysis of targets of opportunity and scripted tools in Ch.4). \enquote{\textit{However, do not discount the threat of the unskilled attackers, those who concentrate on targets of
+opportunity. What these individuals lack in skill or finesse, they more than make up for in
+numbers. While there are no statistics to determine specific percentages, I would estimate that 80
+to 90 percent of attacks today are accomplished by the "easy kill" variety.}} \autocite[Ch.~2, p.~35]{spitzner2002honeypots} 
 
-            - \texttt{Persistence mechanism prioritization}: How do attackers strategically deploy backdoors (e.g., key injections, cronjobs) post-compromise? \enquote{Persistence, not advanced technical skills, is how these attackers successfully break into a system.} (Ch.2, p. 35)
+            - \texttt{Persistence mechanism prioritization}: How do attackers strategically deploy backdoors (e.g., key injections, cronjobs) post-compromise? \enquote{\textit{Persistence, not advanced technical skills, is how these attackers successfully break into a system.}} \autocite[Ch.~2, p.~35]{spitzner2002honeypots} 
 
-            - \texttt{Decoy efficacy for intelligence gathering}: To what extent do fabricated system artifacts (e.g., \textit{/etc/shadow} entries) prolong attacker engagement to enhance TTP profiling? (Testing Spitzner’s concept of deception as \enquote{psychological weapons used to mess with and confuse a human attacker} in Ch.4, p. 74).
+            - \texttt{Decoy efficacy for intelligence gathering}: To what extent do fabricated system artifacts (e.g., \textit{/etc/shadow} entries) prolong attacker engagement to enhance TTP profiling? (Testing Spitzner’s concept of deception as \enquote{\textit{psychological weapons used to mess with and confuse a human attacker}} \autocite[Ch.~4, p.~73]{spitzner2002honeypots}.
             
         %
         % %
@@ -261,7 +263,7 @@ failregex = ^%(__prefix_line)sReceived disconnect from <HOST> port \d+: Too many
 
     \section{Cowrie Honeypot Setup}
     Honeypots differ by level of interaction: low-interaction emulates the minimal service much of the time to detect attackers; medium-interaction such as Cowrie employ a controlled environment withstanding an attacker's impact; high-interaction (like Honeynets) provides access to fully functioning Operating Systems allowing as much dynamic information gathering as possible.
-    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots} (Ch.9). Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to log specific attacker behavior. The deployment of a medium-interaction Cowrie Honeypot is described here for a Ubuntu 24 virtual machine. Find the latest Cowrie official documentation at \href{https://docs.cowrie.org/en/latest/INSTALL.html}{docs.cowrie.org}.
+    Spitzner emphasizes the importance of tailoring honeypots to specific needs: \enquote{\textit{Developing your own honeypot is not as complicated as it might seem. Using a variety of commonly found security tools, some basic code, and a lot of creativity, you can create many different honeypots}} \autocite[Ch.~9, p.~183]{spitzner2002honeypots}. Cowrie’s configuration leverages this flexibility, allowing customization of emulated services to log specific attacker behavior. The deployment of a medium-interaction Cowrie Honeypot is described here for a Ubuntu 24 virtual machine. Find the latest Cowrie official documentation at \href{https://docs.cowrie.org/en/latest/INSTALL.html}{docs.cowrie.org}.
     
 \label{sec:cowrie}
     \subsection{System Requirements}
@@ -307,7 +309,7 @@ sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.c
         fontupper=\small,  
         sharp corners  
     ]  
-    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken. \enquote{The greater the level of interaction, the more functionality provided to the attacker, and the greater the complexity. Combined, these elements can introduce a great deal of risk} (Ch.5, p. 91).
+    This setup only serves academic purposes; adversarial activities are welcomed, but no offensive counteraction shall be taken. \enquote{\textit{The greater the level of interaction, the more functionality provided to the attacker, and the greater the complexity. Combined, these elements can introduce a great deal of risk}} \autocite[Ch.~5, p.~91]{spitzner2002honeypots}.
     \end{tcolorbox}  
     %
     % %
@@ -318,8 +320,7 @@ sed -i 's/tcp:6415:interface=127.0.0.1/tcp:2222:interface=0.0.0.0/' etc/cowrie.c
     % section Maximizing Engagement with Deception
     \section{Maximizing Engagement with Deception}
 
-As Spitzner points out with respect to the psychological effects of deception, \enquote{Deception and deterrence are designed as psychological weapons to confuse
-people. However, these concepts fail if those people are not paying attention} (Ch.4, p. 73), but he also cautions that deception is ineffective against automated threats: \enquote{Automated tools such as worms or auto-rooters will not be deceived} (Ch.9, p. 197). This suggests that while deception-based honeypots can disrupt a human attacker by manipulating human cognitive biases, their usefulness against automated attacks is heavily dependent on detection and analysis; you need a balance of behavioral strategies for human adversaries and good technical defenses to capture and analyze automated threats. This section relates some interesting deceptive functionalities that Cowrie supports.
+As Spitzner points out with respect to the psychological effects of deception, \enquote{\textit{Deception and deterrence are designed as psychological weapons to confuse people. However, these concepts fail if those people are not paying attention}} \autocite[Ch.~4, p.~73]{spitzner2002honeypots}, but he also cautions that deception is ineffective against automated threats: \enquote{\textit{Automated tools such as worms or auto-rooters will not be deceived}}\autocite[Ch.~9, p.~197]{spitzner2002honeypots}. This suggests that while deception-based honeypots can disrupt a human attacker by manipulating human cognitive biases, their usefulness against automated attacks is heavily dependent on detection and analysis; you need a balance of behavioral strategies for human adversaries and good technical defenses to capture and analyze automated threats. This section relates some interesting deceptive functionalities that Cowrie supports.
 
     \subsection{Forged Filesystem}
 Cowrie's file system trickery is specifically focusing on exploiting cognitive engagement of human attackers actively probing for system vulnerabilities. Realistic simulation is therefore essential for valuable intelligence; each Cowrie session spawns a separate virtual file system where attackers can execute destructive commands (rm, chmod) or extract credentials. All operations reset post-session without further effect. In reality, no file is ever modified, Cowrie efficiently accomplishes this with metadata serialization, binary files with the \textit{.pickle} extension. These are generated out of a decoy file system, they contain tree structures with legitimate permissions, timestamps, and file attributes. Cowrie is prepackaged with a default \textit{fs.pickle} containing most system files in a read-only. This pickle binary can be browsed through and customized using the \textit{fsctl} toolkit. It is also possible to replace the default file system with a completely different one using \href{https://github.com/cowrie/cowrie/blob/main/docs/HONEYFS.rst}{honeyfs} and its \textit{createfs} command.
@@ -373,12 +374,15 @@ sudo -u django_honeypot /opt/django_honeypot/venv/bin/pip install django django-
 
 # Project initialization
 sudo -u django_honeypot /opt/django_honeypot/venv/bin/django-admin startproject honeypot_project /opt/django_honeypot
+sudo -u django_honeypot /opt/django_honeypot/venv/bin/python /opt/django_honeypot/manage.py makemigrations
+sudo -u django_honeypot /opt/django_honeypot/venv/bin/python /opt/django_honeypot/manage.py migrate
+sudo -u django_honeypot /opt/django_honeypot/venv/bin/python manage.py collectstatic
 
 # Service integration
 sudo ln -s /etc/nginx/sites-available/django_honeypot /etc/nginx/sites-enabled/ # Exposure
 sudo nginx -t && sudo systemctl reload nginx
-sudo systemctl start gunicorn
-sudo systemctl enable gunicorn
+sudo systemctl start gunicorn nginx
+sudo systemctl enable gunicorn nginx
 
 # Attack surface
 sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
@@ -391,18 +395,18 @@ sudo -u django_honeypot sqlite3 /opt/django_honeypot/db.sqlite3 ".schema admin_h
 
 \section{Research Findings \& Attack Profiling}
  
-Early deployment revealed a serious anomaly: the AWS eu-north-1 honeypot received insignificant attack traffic (<5 unique IPs) over 72 hours of uninterrupted operation. Further retrospection suggested that other dynamics influence attacker behavior or restrict our visibility on the Web. Several reasons are responsible for this difference: One, the example is based on a geographically subdued location where Amazon security defenses (e.g., Shield Advanced, VPC flow analytics) would proactively block known malicious IP, yielding negative ROI for botnets for whose attack costs exceeded potential harvest. Two, DNS targeting limits, having no domain associated, our IP-only instance is beyond attacker reconnaissance pipelines aimed at enumerated targets. Third, our system had no prior service history footprint to hype up its visibility in adversarial scanning databases (like Shodan or Censys). The region's lower concentration of old systems makes it less attractive for distributed scanning operations in search of target-rich environments. Botnets responsible for SSH server scraping might also avoid heavily monitored cloud segments, where risks supersede potential reward. 
+Early deployment revealed a serious anomaly: the AWS eu-north-1 honeypot received insignificant attack traffic (<5 unique IPs) over 72 hours of uninterrupted operation. Further retrospection suggested that other dynamics influence attacker behavior or hinder our server's visibility on the Web. Several reasons are responsible for this difference: One, our instance is based on a geographically subdued location where Amazon security defenses (e.g., Shield Advanced, VPC flow analytics) would proactively block known malicious IP, yielding negative ROI for botnets for whose attack costs exceeded potential harvest. Two, DNS targeting limits, having no domain associated, our IP-only instance is beyond attacker reconnaissance pipelines aimed at enumerated targets. Third, our system had no prior service history footprint to hype up its visibility in adversarial scanning databases (like Shodan or Censys). The region's lower concentration of old systems makes it less attractive for distributed scanning operations in search of target-rich environments. Botnets responsible for SSH server scraping might also avoid heavily monitored cloud segments, where risks supersede potential reward. 
 
 
 
 
 \subsection{Corrective Measures}
 
-\enquote{A Honeynet consisting of default installations of systems and little or no activity is a sterile
+\enquote{\textit{A Honeynet consisting of default installations of systems and little or no activity is a sterile
 environment. Such an environment is excellent at capturing automated activity or attackers
 focusing on targets of opportunity. However, such a sterile environment has little value to
 advanced blackhats, individuals who concentrate on targets of choice, high-value systems.
-For such attackers, one must sweeten the pot.} \autocite[Ch.~11, p.~259]{spitzner2002honeypots}
+For such attackers, one must sweeten the pot.}} \autocite[Ch.~11, p.~259]{spitzner2002honeypots}
 
 The observed absence of attacks in AWS eu-north-1 underscores a critical limitation in contemporary honeypot deployment: strategic placement outweighs technical configuration. Although our implementation rigorously applied Spitzner’s architectural principles, it could not overcome the inherent environmental sterility of a well-protected and low-noise cloud region. To solve this, we transition our infrastructure to a higher-friction zone, switching to OVH VPS in eastern Asia. This low-cost provider provides unmonitored VPS in target-rich IP blocks with rather busy infrastructures that consistently rank at the top of the scan lists. Furthermore, OVH specifically authorizes the setup of a honeypot in its ToS (for research purposes, as long as there is no entrapment) and is generally more permissive regarding probe captures than Amazon. By retaining our same configurations and deception mechanisms but switching for a lower hanging fruit, we expect attackers to follow the path of least resistance and to be incited in paying our honeypot a visit, although our main priority remains data collection for attack profiling over total unique connections. 
 
