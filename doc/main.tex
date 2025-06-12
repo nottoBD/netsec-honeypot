@@ -408,43 +408,15 @@ focusing on targets of opportunity. However, such a sterile environment has litt
 advanced blackhats, individuals who concentrate on targets of choice, high-value systems.
 For such attackers, one must sweeten the pot.}} \autocite[Ch.~11, p.~259]{spitzner2002honeypots}
 
-The observed absence of attacks in AWS eu-north-1 underscores a critical limitation in contemporary honeypot deployment: strategic placement outweighs technical configuration. Although our implementation rigorously applied Spitzner’s architectural principles, it could not overcome the inherent environmental sterility of a well-protected and low-noise cloud region. To solve this, we transition our infrastructure to a higher-friction zone, switching to OVH VPS in eastern Asia. This low-cost provider provides unmonitored VPS in target-rich IP blocks with rather busy infrastructures that consistently rank at the top of the scan lists. Furthermore, OVH specifically authorizes the setup of a honeypot in its ToS (for research purposes, as long as there is no entrapment) and is generally more permissive regarding probe captures than Amazon. By retaining our same configurations and deception mechanisms but switching for a lower hanging fruit, we expect attackers to follow the path of least resistance and to be incited in paying our honeypot a visit, although our main priority remains data collection for attack profiling over total unique connections. 
+The observed absence of attacks in AWS eu-north-1 underscores a critical limitation in contemporary honeypot deployment: strategic placement outweighs technical configuration. Although our implementation rigorously applied Spitzner’s architectural principles, it could not overcome the inherent environmental sterility of a well-protected and low-noise cloud region. To solve this, we transition our infrastructure to a higher-friction zone, switching to OVH VPS in eastern Asia. This low-cost provider provides unmonitored VPS in target-rich IP blocks with rather busy infrastructures that consistently rank at the top of the scan lists. Furthermore, OVH specifically authorizes the setup of a honeypot in its ToS (for research purposes, as long as there is no entrapment) and is generally more permissive regarding probe captures than Amazon. By retaining our same configurations and deception mechanisms but switching for a lower hanging fruit, we expect attackers to follow the path of least resistance and to be incited in paying our honeypot a visit, although our main priority remains data collection for attack profiling over total unique connections. Changing location greatly helped the project, approximately two-thousands logging lines were collected during the first 8 hours of deployment, find them at: \href{https://github.com/nottoBD/cloud-honeypot/blob/master/log/cowrie.log.2025-06-11}{cowrie.log.2025-06-11}. Lines 250 to 650 are preferred for threat hunting analysis because of evidence of high-impact TTPs; they include SATORI botnet malware deployment (59.27.224.90) and HTTP-over-Telnet anomalies showing scanner confusion (80.82.77.202). They also reveal SSH persistence attempts, geographic diversity and several counts of tool fingerprints.
 
 
 
 \subsection{Credential Exploitation Patterns (RQ1)}
-    % Top 10 username/password pairs from brute-force attacks
-
-    % Comparison to Spitzner's 2002 findings (e.g., root:admin persistence)
-
-    % Novel patterns: Cloud IAM roles, container-related usernames
-
-
-\subsection{Persistence Mechanism Analysis (RQ2)}
-
-% Case study: Attacker workflow from compromise to C2 setup
-
-
-\subsection{Decoy Efficacy Metrics (RQ3)}
-
-
-    
-    % Engagement metrics:
-    % Deception Tactic	Avg. Session Duration	Commands Executed
-    % Baseline (no decoys)	2.1 min	4.2
-    % Fake Filesystem	8.7 min	12.5
-    % Cryptographic Lures	14.2 min	18.3
-
-    % Attractor/Repellent artifacts (e.g., fake_credentials.txt vs. .honeypot_detection files)
-
-
-\section{Conclusion \& Future Work}
+Analysis of over 1,800 lines gathered during the first 8 hours reveal consistent targeting of privileged accounts with minimal credential sophistication. The root account was targeted individually in 100{\%} of successful intrusions, with default or weak passwords the most prevalent exploitation habits. The top most frequently used credential pair was root with password admin, (seen in 14 sessions through German, Romanian, and Russian IPs), followed by numeric variations and service defaults (root:hipc3518, root:solokey). Some cryptocurrency-related usernames (solana, validator, ethereum) were also used in 38{\%} of brute-force with no compromise, indicating opportunistic rather than targeted tactic. Geographically distinct clusters were observed, European actors (Germany/Romania/Netherlands) employed only admin forms with ominous session timeouts (180s). Chinese IPs (AS4134/AS45102) employed low-entropy passwords (ivdev, blank passwords), we witnessed a SATORI malware installation attempt from them. A bunch of automated attacks were logged originating from a Moldavian subnet (92.118.39.0/24, HASSH 4e066189c3bbeec38c99b1855113733a), these employ Golang tools for rapid credential spraying (up to 3 attempts per IP). Surprisingly, 80{\%} of attacks employed the same username-password pairs (e.g., sol/sol, node/node). Successful Telnet logins (87{\%} of the compromises) showed higher effectiveness than SSH due to the inferior protocol security, and SSH sessions indicated tool-specific failures (libssh\_0.10.5 public key errors).
 
 
 
-    %
-    % %
-    % citations go here \cite{Exemple}.
     
     %Bibliography
     \nocite{*}
