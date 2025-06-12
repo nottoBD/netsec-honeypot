@@ -3,7 +3,7 @@
 
 ```-i specifies privkey```
 ```
-ssh -A -i ~/.ssh/ovh_vps ubuntu@51.79.248.60 -p 61001
+ssh -A -i ~/.ssh/ovh_vps ubuntu@vps-787fca07.vps.ovh.ca -p 61001
 ```
 
 ---
@@ -11,11 +11,11 @@ ssh -A -i ~/.ssh/ovh_vps ubuntu@51.79.248.60 -p 61001
 ## Public Access
 SSH Honeypot
 ```
-ssh root@51.79.248.60 
+ssh root@vps-787fca07.vps.ovh.ca -4
 ```
 Telnet Honeypot
 ```
-telnet 51.79.248.60
+telnet vps-787fca07.vps.ovh.ca -4
 ```
 HTTP Honeypot
 ```
