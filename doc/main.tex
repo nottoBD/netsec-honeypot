@@ -419,12 +419,20 @@ Analysis of over 1,800 lines gathered during the first 8 hours reveal consistent
 \subsection{Persistence Mechanism Analysis (RQ2)}
 Post-compromise actions showed a crucial persistence shortfall, with attackers not prioritizing stealthy persistence but rather going for immediate payload delivery. Three distinct patterns emerged; Malware-Driven Persistence: Chinese and Brazilian IPs (59.27.224.90, 177.66.30.54) executed SATORI botnet payloads via \textit{/bin/busybox} immediately after compromise. Commands included weaponized busybox activities (payloads starting with \textit{cat /bin/busybox || while read i; do}..), demonstrating IoT-focused propagation attempts. All these sessions timed out rather quickly due to the limitations in how Cowrie is emulated. \texttt{Proxy-First Strategies}: 37{\%} of compromised sessions (e.g., 185.156.73.233/Russia, 80.94.95.116/Russia) initiated direct tunneling to Google IPs (142.250.179.174:443, google.com:443) within a few seconds after login. This "smash-and-grab" activity can be an indication that attackers checked hosts for proxy-chaining rather than persistent access. \texttt{Reconnaissance-Only}: 53{\%} of the successful logins (e.g., 185.196.220.81 from the Netherlands or 182.92.219.204 from China) performed simple reconnaissance (uname -s -m) before rapidly disconnecting, perhaps after detecting the nature of our system. No SSH key injection, cronjob deployment, or file editing was observed, which might indicate honeypot detection or lack decoy artifacts. Persistent access was not achieved apart from frequent reconnections (e.g., 120.27.154.152 from China opening 4 SSH sessions within 4 minutes).
 
-\subsection{Decoy Efficacy Metrics (RQ3)}
+\subsection{Decoy Efficacy (RQ3)}
+
+Honeypot deception artifacts failed to prolong engagement for several reasons; \texttt{Terminal Error Reactions}: BusyBox emulation triggered immediate termination when attackers encountered Command not found errors (e.g., SATORI attempts) or FileNotFoundError (e.g., /bin/busybox access). Cowrie allows some ways to mitigate that undesirable tell by printing predefined output for specific commands entered by attacker, while tedious to implement for every possibility, sessions with such errors lasted less than 30 seconds before closing. \texttt{Protocol Confusion}: HTTP-over-Telnet probes (80.82.77.202/Netherlands) demonstrated decoy adaptability when attackers sent HTTP headers (\textit{GET /, User-Agent: Mozilla}..) to Telnet ports, these same sessions lasted a little longer than the average probes. \texttt{Reconnaissance Value}: Fabricated \textit{uname} outputs (linux-x64-lsb) provided intelligence on attacker priorities, but no follow-on actions occurred. Critical Issue: Zero interaction with \textit{/etc/shadow} despite deployment. Cryptographic services (e.g., fake \textit{/etc/shadow}) elicited no engagement. The absence of fake cryptocurrency node artifacts (solana, polkadot) missed exploitation opportunities. In general, decoys underperformed.
 
 
 \section{Conclusion \& Future Work}
 
 
+
+We successfully deployed a medium-interaction SSH honeypot using Cowrie and proved Spitzner’s principle that well-architected honeypots produce small amounts of high-value data. Our deployment captured attacker TTPs across hundreds of sessions after we moved from AWS eu-north-1 (which got zero hits in 72 hours because of Amazon’s security filtering) to a higher-friction OVH VPS in Asia (Singapore). This proved environmental placement is just as important as technical configuration for honeypot effectiveness. Key findings: Credential exploitation (RQ1) showed 80{\%} of attackers used weak/default credentials like ‘root:admin’, privileged accounts were exclusively targeted and cryptocurrency usernames were the most common in failed brute-forces. Persistence mechanisms (RQ2) showed preference for immediate “smash-and-grab” actions (malware delivery, proxy tunneling) over stealthy persistence, zero SSH key injection or cronjob deployment.
+Decoy efficacy (RQ3) was poor against automated tools which ignored high value lures like fake \textit{/etc/shadow} files and terminated sessions within 30 seconds when encountering emulation errors.
+Critical limitations: 1) Cloud provider security (like AWS Shield) can sterilize environments 2) Cowrie’s binary emulation gaps caused attacker to bail 3) Session based design prevented long term persistence monitoring 4) Automated tools ignored psychological lures like our Django admin panel decoy.
+Future research can fill these gaps by: enabling Cowrie on containerized high-interaction systems on diverse platforms, including those that allow an attacker to virtually «succeed» some attempts. Enabling flexible artifact engineering to develop dynamic deception (e.g., cryptocurrency nodes, Kubernetes node configurations) on AI template could be interesting against emerging threat classes. Geolocation is vital so that a honeynet outside of considerably watched the area, like OVH Asia or Scaleway Africa helps avoid provider filtering while allowing comparisons to be made regarding methods, techniques, and procedures (TTPs). Realism of artifacts can also be improved, increasing emulation fidelity, per example by combining Linux namespaces with actual binaries. Finally, it is important to continue exploring the legality of multi-jurisdiction undertakings like honeypots.
+This suggests that honeypots still have value in providing insights while revealing contemporary problems: modern automation must embrace deception beyond static bait, and situations in use may compromise perspectives of visibility. Bridging the gap to method and experience and permitting long-term persistent observability might enable future attempts to push honeypots further towards pro-active adversarial learning systems capable of detecting contemporary advanced attacker methods.
 
 
     %Bibliography
@@ -452,8 +460,5 @@ Post-compromise actions showed a crucial persistence shortfall, with attackers n
     \input{annex.tex}
     %
     % %
-
-
-
 
 \end{document}

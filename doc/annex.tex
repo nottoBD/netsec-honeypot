@@ -13,7 +13,9 @@ Large Language Models (LLMs) were strategically employed during the realization 
 
 --- \textbf{Verification-Centric Deployment}: LLMs output is heavily dependent on its user's own comprehension, AI will not do more than instructed to, it will not \texttt{consciously} ask user a question, it will not compel you to do anything, but it is a decent corrector and will definitely be able to give suggestions that go in the right direction. All model outputs undergo cross-validation against credible and up-to-date sources such as; official documentation (Linux man pages, git repository documentation, Cloud guides), academic literature (Spitzner's foundational honeypot frameworks, cybersecurity courses), security best practices and standards. Not one technical implementation (e.g.: IAM policies, iptables rules, or authentication logic) were deployed before thorough validation and edge-case mitigation.
 
---- \textbf{Controlled Application}: LLMs interactions were constrained to: debugging assistance for Python scripting and \textit{systemd}-based Linux administration, technical documentation refinement (post-human draft), architectural brainstorming (especially in understanding distinct public Cloud providers' lingo for equivalent functionalities). Original research material or system designs created solely from LLMs output alone were absolutely forbidden and so was plagiarism. To conclude, results of this research are human-produced only or consequences of attack patterns that were witnessed within our honeypot network.
+--- \textbf{Controlled Application}: LLMs interactions were constrained to: debugging assistance for Python scripting and \textit{systemd}-based Linux administration, technical documentation refinement (post-human draft), architectural brainstorming (especially in understanding distinct public Cloud providers' lingo for equivalent functionalities). \texttt{Original research material or system designs created solely from LLMs output alone were absolutely forbidden}, \texttt{and so are plagiarism as well as copy-pasting content from LLM to the project}. 
+
+In conclusion, results of this research are strictly human-produced or consequences of attack patterns that were witnessed within our honeypot network.
 
 \subsection*{Operational Safeguards}
 The implementation incorporated safeguards to preserve academic integrity:
@@ -104,9 +106,6 @@ sudo tail -f /home/cowrie/cowrie/var/log/cowrie/cowrie.log | ccze -A
     \includegraphics[width=1\linewidth]{doc/img/annex_c_listing_2.png}
     \caption*{Record of two intrusions in real time}
 \end{figure}
-
-\
-￼
 
 \
 % END
